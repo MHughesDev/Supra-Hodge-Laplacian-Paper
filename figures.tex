@@ -1,0 +1,1563 @@
+% ============================================================================
+% figures.tex
+% ----------------------------------------------------------------------------
+% Required TikZ libraries (in main preamble):
+% positioning, arrows.meta, calc, shapes.geometric, fit, backgrounds, matrix
+%
+% This file defines reusable figure macros for insertion at section-level
+% locations in the paper. Each macro expands to a full figure environment.
+% ============================================================================
+
+% Unified figure colors (formal, muted)
+\definecolor{shNeutral}{RGB}{45,45,45}
+\definecolor{shBlue}{RGB}{44,90,140}
+\definecolor{shRed}{RGB}{130,48,48}
+\definecolor{shGreen}{RGB}{72,120,78}
+
+% Unified drawing styles
+\tikzset{
+  sh/edge/.style={draw=shNeutral, line width=0.95pt},
+  sh/edgeBlue/.style={draw=shBlue, line width=1.0pt},
+  sh/edgeRed/.style={draw=shRed, line width=1.0pt},
+  sh/couple/.style={draw=shRed, line width=0.95pt, dashed},
+  sh/infer/.style={draw=shNeutral, line width=0.9pt, dotted},
+  sh/node/.style={circle, draw=shNeutral, line width=0.9pt, fill=white, inner sep=1.45pt},
+  sh/nodeBlue/.style={circle, draw=shBlue, line width=0.95pt, fill=white, inner sep=1.45pt},
+  sh/nodeGreen/.style={circle, draw=shGreen, line width=0.95pt, fill=white, inner sep=1.45pt},
+  sh/arrow/.style={-{Stealth[length=2.2mm,width=1.6mm]}, line width=0.95pt, draw=shNeutral},
+  sh/arrowBlue/.style={-{Stealth[length=2.2mm,width=1.6mm]}, line width=0.95pt, draw=shBlue},
+  sh/arrowRed/.style={-{Stealth[length=2.2mm,width=1.6mm]}, line width=0.95pt, draw=shRed},
+  sh/box/.style={draw=shNeutral, rounded corners=1.2pt, line width=0.9pt, fill=white},
+  sh/boxBlue/.style={draw=shBlue, rounded corners=1.2pt, line width=0.9pt, fill=shBlue!7},
+  sh/boxRed/.style={draw=shRed, rounded corners=1.2pt, line width=0.9pt, fill=shRed!8},
+  sh/boxGreen/.style={draw=shGreen, rounded corners=1.2pt, line width=0.9pt, fill=shGreen!8}
+}
+
+% ============================================================================
+% Figure A1
+% Name: Progressive construction to Supra-Hodge
+% Purpose: Show left-to-right construction pipeline from graph to coupled
+%          higher-order multi-layer system.
+% Insert near: Introduction (replaces old conceptual hierarchy figure)
+% ============================================================================
+\newcommand{\FigureAOne}{
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[x=1cm,y=1cm,>=Latex,scale=1.04,every node/.style={transform shape}]
+
+% ----------------------------
+% Color palette
+% ----------------------------
+\definecolor{topoblue}{RGB}{70,120,200}
+\definecolor{couplered}{RGB}{190,95,95}
+\definecolor{harmgreen}{RGB}{80,150,110}
+\definecolor{ghostgray}{RGB}{180,180,180}
+\definecolor{framegray}{RGB}{80,80,80}
+\definecolor{lightfill}{RGB}{245,247,250}
+
+% ----------------------------
+% Shared styles
+% ----------------------------
+\tikzset{
+    baseNode/.style={
+        circle, draw=framegray, fill=white,
+        inner sep=0pt, minimum size=4.6pt, line width=0.8pt
+    },
+    phasePanel/.style={rounded corners=4pt, draw=ghostgray!85, fill=lightfill, line width=0.7pt},
+    neutralEdge/.style={draw=framegray, line width=0.9pt},
+    topoEdge/.style={draw=topoblue, line width=1.0pt},
+    couplingEdge/.style={draw=couplered!75, dashed, line width=0.8pt},
+    ghostEdge/.style={draw=ghostgray, dashed, line width=0.7pt},
+    panelTitle/.style={font=\small},
+    miniLabel/.style={font=\scriptsize},
+    numLabel/.style={font=\scriptsize, text=framegray},
+    morphArrow/.style={->, draw=framegray, line width=0.9pt},
+    lpbox/.style={rounded corners=4pt, draw=framegray, fill=lightfill, line width=0.8pt}
+}
+
+% ----------------------------
+% Panel centers
+% ----------------------------
+\coordinate (P1) at (1.8,2.0);
+\coordinate (P2) at (5.8,2.0);
+\coordinate (P3) at (10.3,2.0);
+\coordinate (P4) at (15.2,2.0);
+
+% ----------------------------
+% Panel 1: Graph
+% ----------------------------
+\draw[phasePanel] ($(P1)+(-1.35,-1.20)$) rectangle ($(P1)+(1.35,1.25)$);
+\coordinate (p1a) at ($(P1)+(-0.85,-0.85)$);
+\coordinate (p1b) at ($(P1)+( 0.85,-0.85)$);
+\coordinate (p1c) at ($(P1)+(-0.85, 0.85)$);
+\coordinate (p1d) at ($(P1)+( 0.85, 0.85)$);
+
+\draw[neutralEdge] (p1a)--(p1b)--(p1d)--(p1c)--cycle;
+\draw[neutralEdge] (p1a)--(p1d);
+
+\node[baseNode] at (p1a) {};
+\node[baseNode] at (p1b) {};
+\node[baseNode] at (p1c) {};
+\node[baseNode] at (p1d) {};
+
+\node[numLabel, below=2pt of p1a] {1};
+\node[numLabel, below=2pt of p1b] {2};
+\node[numLabel, left=2pt of p1c] {3};
+\node[numLabel, right=2pt of p1d] {4};
+
+\node[panelTitle] at ($(P1)+(0,1.70)$) {(a) Graph};
+\node[miniLabel]  at ($(P1)+(0,-1.72)$) {pairwise skeleton};
+
+% ----------------------------
+% Panel 2: Simplicial complex
+% ----------------------------
+\draw[phasePanel] ($(P2)+(-1.35,-1.20)$) rectangle ($(P2)+(1.35,1.25)$);
+\coordinate (p2a) at ($(P2)+(-0.85,-0.85)$);
+\coordinate (p2b) at ($(P2)+( 0.85,-0.85)$);
+\coordinate (p2c) at ($(P2)+(-0.85, 0.85)$);
+\coordinate (p2d) at ($(P2)+( 0.85, 0.85)$);
+
+% filled triangle (1,2,4)
+\fill[topoblue!20] (p2a)--(p2b)--(p2d)--cycle;
+% ghost triangle (1,3,4)
+\fill[topoblue!8] (p2a)--(p2c)--(p2d)--cycle;
+
+\draw[neutralEdge] (p2a)--(p2b)--(p2d)--(p2c)--cycle;
+\draw[neutralEdge] (p2a)--(p2d);
+
+\node[baseNode] at (p2a) {};
+\node[baseNode] at (p2b) {};
+\node[baseNode] at (p2c) {};
+\node[baseNode] at (p2d) {};
+
+\node[numLabel, below=2pt of p2a] {1};
+\node[numLabel, below=2pt of p2b] {2};
+\node[numLabel, left=2pt of p2c] {3};
+\node[numLabel, right=2pt of p2d] {4};
+
+\node[panelTitle] at ($(P2)+(0,1.70)$) {(b) Simplicial complex};
+\node[miniLabel]  at ($(P2)+(0,-1.72)$) {higher-order closure};
+
+% ----------------------------
+% Panel 3: Multilayer graph
+% ----------------------------
+\draw[phasePanel] ($(P3)+(-1.55,-1.95)$) rectangle ($(P3)+(1.35,1.45)$);
+% top layer
+\coordinate (p3ta) at ($(P3)+(-0.70,-0.30)$);
+\coordinate (p3tb) at ($(P3)+( 0.70,-0.30)$);
+\coordinate (p3tc) at ($(P3)+(-0.70, 1.10)$);
+\coordinate (p3td) at ($(P3)+( 0.70, 1.10)$);
+
+% bottom layer
+\coordinate (p3ba) at ($(P3)+(-0.70,-1.70)$);
+\coordinate (p3bb) at ($(P3)+( 0.70,-1.70)$);
+\coordinate (p3bc) at ($(P3)+(-0.70,-0.30)$);
+\coordinate (p3bd) at ($(P3)+( 0.70,-0.30)$);
+
+\draw[neutralEdge] (p3ta)--(p3tb)--(p3td)--(p3tc)--cycle;
+\draw[neutralEdge] (p3ta)--(p3td);
+
+\draw[neutralEdge] (p3ba)--(p3bb)--(p3bd)--(p3bc)--cycle;
+\draw[neutralEdge] (p3ba)--(p3bd);
+
+\draw[ghostEdge] (p3ta)--(p3ba);
+\draw[ghostEdge] (p3tb)--(p3bb);
+\draw[ghostEdge] (p3tc)--(p3bc);
+\draw[ghostEdge] (p3td)--(p3bd);
+
+\node[baseNode] at (p3ta) {};
+\node[baseNode] at (p3tb) {};
+\node[baseNode] at (p3tc) {};
+\node[baseNode] at (p3td) {};
+\node[baseNode] at (p3ba) {};
+\node[baseNode] at (p3bb) {};
+\node[baseNode] at (p3bc) {};
+\node[baseNode] at (p3bd) {};
+
+\node[miniLabel, anchor=west] at ($(P3)+(-1.42,0.48)$) {Layer A};
+\node[miniLabel, anchor=west] at ($(P3)+(-1.42,-1.05)$) {Layer B};
+
+\node[panelTitle] at ($(P3)+(0,1.95)$) {(c) Multilayer graph};
+\node[miniLabel]  at ($(P3)+(0,-2.20)$) {same entities, multiple views};
+
+% ----------------------------
+% Panel 4: Supra-Hodge setting
+% ----------------------------
+% outer operator box
+\draw[lpbox] ($(P4)+(-1.70,-2.00)$) rectangle ($(P4)+(1.70,1.70)$);
+\node[font=\small] at ($(P4)+(0,1.78)$) {$L_p$};
+
+% top layer
+\coordinate (p4ta) at ($(P4)+(-0.95,-0.25)$);
+\coordinate (p4tb) at ($(P4)+( 0.20,-0.25)$);
+\coordinate (p4tc) at ($(P4)+(-0.95, 0.95)$);
+\coordinate (p4td) at ($(P4)+( 0.20, 0.95)$);
+
+% bottom layer
+\coordinate (p4ba) at ($(P4)+(-0.20,-1.35)$);
+\coordinate (p4bb) at ($(P4)+( 0.95,-1.35)$);
+\coordinate (p4bc) at ($(P4)+(-0.20,-0.15)$);
+\coordinate (p4bd) at ($(P4)+( 0.95,-0.15)$);
+
+% higher-order faces
+\fill[topoblue!20] (p4ta)--(p4tb)--(p4td)--cycle;
+\fill[topoblue!20] (p4ba)--(p4bc)--(p4bd)--cycle;
+
+% intra-layer edges
+\draw[topoEdge] (p4ta)--(p4tb)--(p4td)--(p4tc)--cycle;
+\draw[topoEdge] (p4ta)--(p4td);
+
+\draw[topoEdge] (p4ba)--(p4bb)--(p4bd)--(p4bc)--cycle;
+\draw[topoEdge] (p4ba)--(p4bd);
+
+% inter-layer couplings
+\draw[couplingEdge] (p4ta)--(p4ba);
+\draw[couplingEdge] (p4tb)--(p4bb);
+\draw[couplingEdge] (p4tc)--(p4bc);
+\draw[couplingEdge] (p4td)--(p4bd);
+
+\node[baseNode] at (p4ta) {};
+\node[baseNode] at (p4tb) {};
+\node[baseNode] at (p4tc) {};
+\node[baseNode] at (p4td) {};
+\node[baseNode] at (p4ba) {};
+\node[baseNode] at (p4bb) {};
+\node[baseNode] at (p4bc) {};
+\node[baseNode] at (p4bd) {};
+
+\node[panelTitle] at ($(P4)+(0,2.28)$) {(d) Supra-Hodge setting};
+
+% ----------------------------
+% Morph arrows between panels
+% ----------------------------
+\draw[morphArrow] ($(P1)+(1.35,0)$) to[out=0,in=180] ($(P2)+(-1.35,0)$);
+\draw[morphArrow] ($(P2)+(1.35,0)$) to[out=0,in=180] ($(P3)+(-1.35,0)$);
+\draw[morphArrow] ($(P3)+(1.45,0)$) to[out=0,in=180] ($(P4)+(-2.10,0)$);
+
+\end{tikzpicture}
+\caption{
+Progressive emergence of the Supra-Hodge setting: a pairwise graph becomes a simplicial complex by adding higher-order faces, then a multilayer graph by duplicating the entity set across views, and finally a coupled higher-order system in which intra-layer topology and inter-layer coupling coexist inside a single operator model.
+}
+\label{fig:construction}
+\end{figure*}
+}
+
+% ============================================================================
+% Figure A2
+% Name: Chain spaces and signals
+% Purpose: Visualize C_0, C_1, C_2 signal types on a common simplicial base.
+% Insert near: Simplicial/chain-space motivation text
+% ============================================================================
+\newcommand{\FigureATwo}{
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[x=1cm,y=1cm,>=Latex,scale=1.10,every node/.style={transform shape}]
+
+% ----------------------------
+% Color palette
+% ----------------------------
+\definecolor{topoblue}{RGB}{70,120,200}
+\definecolor{couplered}{RGB}{190,95,95}
+\definecolor{harmgreen}{RGB}{80,150,110}
+\definecolor{softgold}{RGB}{210,170,80}
+\definecolor{ghostgray}{RGB}{185,185,185}
+\definecolor{framegray}{RGB}{80,80,80}
+\definecolor{lightfill}{RGB}{246,247,249}
+
+% ----------------------------
+% Styles
+% ----------------------------
+\tikzset{
+    baseNode/.style={
+        circle, draw=framegray, fill=white,
+        inner sep=0pt, minimum size=5.2pt, line width=0.8pt
+    },
+    paleNode/.style={
+        circle, draw=framegray!80, fill=white!95!ghostgray,
+        inner sep=0pt, minimum size=5.0pt, line width=0.7pt
+    },
+    framePanel/.style={
+        rounded corners=3pt, draw=framegray, line width=0.75pt
+    },
+    faintEdge/.style={draw=ghostgray, line width=0.7pt},
+    mainEdge/.style={draw=framegray, line width=0.9pt},
+    flowArrow/.style={->, draw=topoblue, line width=1.0pt},
+    legendArrow/.style={->, draw=topoblue, line width=0.9pt},
+    panelTitle/.style={font=\small},
+    miniLabel/.style={font=\scriptsize},
+    noteLabel/.style={font=\scriptsize, text=framegray},
+    valueLabel/.style={font=\scriptsize},
+    legendDot/.style={circle, draw=framegray, minimum size=5pt, inner sep=0pt}
+}
+
+% ----------------------------
+% Panel frames
+% ----------------------------
+\draw[framePanel] (0.4,0.6) rectangle (4.2,4.2);
+\draw[framePanel] (4.9,0.6) rectangle (8.7,4.2);
+\draw[framePanel] (9.4,0.6) rectangle (13.2,4.2);
+
+% ----------------------------
+% Shared complex coordinates
+% ----------------------------
+% Left panel offset = (0.4,0.6)
+\coordinate (LA) at (1.2,1.6);
+\coordinate (LB) at (2.4,1.2);
+\coordinate (LC) at (3.6,1.8);
+\coordinate (LD) at (2.9,3.0);
+\coordinate (LE) at (1.6,3.3);
+
+% Mid panel offset = +4.5 in x
+\coordinate (MA) at ($(LA)+(4.5,0)$);
+\coordinate (MB) at ($(LB)+(4.5,0)$);
+\coordinate (MC) at ($(LC)+(4.5,0)$);
+\coordinate (MD) at ($(LD)+(4.5,0)$);
+\coordinate (ME) at ($(LE)+(4.5,0)$);
+
+% Right panel offset = +9.0 in x
+\coordinate (RA) at ($(LA)+(9.0,0)$);
+\coordinate (RB) at ($(LB)+(9.0,0)$);
+\coordinate (RC) at ($(LC)+(9.0,0)$);
+\coordinate (RD) at ($(LD)+(9.0,0)$);
+\coordinate (RE) at ($(LE)+(9.0,0)$);
+
+% ----------------------------
+% Panel 1: Node signals C_0
+% ----------------------------
+\draw[faintEdge] (LA)--(LB)--(LC);
+\draw[faintEdge] (LA)--(LE)--(LD)--(LC);
+\draw[faintEdge] (LB)--(LD);
+\draw[faintEdge] (LA)--(LD);
+
+% Node fills by value
+\fill[topoblue!35]  (LA) circle (0.13);
+\fill[harmgreen!28] (LB) circle (0.13);
+\fill[softgold!45]  (LC) circle (0.13);
+\fill[ghostgray!70] (LD) circle (0.13);
+\fill[couplered!35] (LE) circle (0.13);
+
+\node[baseNode] at (LA) {};
+\node[baseNode] at (LB) {};
+\node[baseNode] at (LC) {};
+\node[baseNode] at (LD) {};
+\node[baseNode] at (LE) {};
+
+% value labels
+\node[valueLabel, text=topoblue!90!black]   at ($(LA)+(-0.18,0.28)$) {$0.9$};
+\node[valueLabel, text=harmgreen!70!black]  at ($(LB)+(-0.20,-0.28)$) {$-0.4$};
+\node[valueLabel, text=softgold!60!black]   at ($(LC)+(0.24,0.12)$) {$0.6$};
+\node[valueLabel, text=framegray]           at ($(LD)+(0.18,0.24)$) {$0.2$};
+
+\node[panelTitle] at (2.3,4.45) {Node signals $C_0$};
+
+% ----------------------------
+% Panel 2: Edge signals C_1
+% ----------------------------
+\draw[faintEdge] (MA)--(MB)--(MC);
+\draw[faintEdge] (MA)--(ME)--(MD)--(MC);
+\draw[faintEdge] (MB)--(MD);
+\draw[faintEdge] (MA)--(MD);
+
+\node[paleNode] at (MA) {};
+\node[paleNode] at (MB) {};
+\node[paleNode] at (MC) {};
+\node[paleNode] at (MD) {};
+\node[paleNode] at (ME) {};
+
+% oriented flows
+\draw[flowArrow, shorten <=2pt, shorten >=2pt] (MA)--(MB);
+\draw[flowArrow, shorten <=2pt, shorten >=2pt, line width=1.15pt] (MA)--(MD);
+\draw[flowArrow, shorten <=2pt, shorten >=2pt, line width=0.95pt] (MD)--(MB);
+\draw[flowArrow, shorten <=2pt, shorten >=2pt] (MC)--(MD);
+\draw[flowArrow, shorten <=2pt, shorten >=2pt, line width=0.8pt] (ME)--(MA);
+
+\node[valueLabel, anchor=west] at ($(MB)+(0.28,-0.36)$) {$f \in C_1$};
+
+\node[panelTitle] at (6.8,4.55) {Edge signals $C_1$};
+
+% ----------------------------
+% Panel 3: Triangle signals C_2
+% ----------------------------
+% faces
+\fill[topoblue!22] (RA)--(RB)--(RD)--cycle;
+\fill[topoblue!12] (RA)--(RD)--(RE)--cycle;
+
+\draw[faintEdge] (RA)--(RB)--(RC);
+\draw[faintEdge] (RA)--(RE)--(RD)--(RC);
+\draw[faintEdge] (RB)--(RD);
+\draw[faintEdge] (RA)--(RD);
+
+\node[paleNode] at (RA) {};
+\node[paleNode] at (RB) {};
+\node[paleNode] at (RC) {};
+\node[paleNode] at (RD) {};
+\node[paleNode] at (RE) {};
+
+\node[valueLabel, anchor=west, fill=white, inner sep=1pt] at ($(RB)+(0.28,-0.50)$) {$g \in C_2$};
+
+% small orientation marker
+\draw[topoblue, line width=0.8pt, ->] ($(RB)+(0.04,-0.32)$) arc[start angle=45,end angle=330,radius=0.23];
+
+\node[panelTitle] at (11.3,4.55) {Triangle signals $C_2$};
+
+% ----------------------------
+% Bottom subtitles
+% ----------------------------
+\node[miniLabel] at (2.3,0.18) {Pointwise state};
+\node[miniLabel] at (6.8,0.18) {Relational flow};
+\node[miniLabel] at (11.3,0.18) {Joint interaction};
+
+% ----------------------------
+% Legend strip
+% ----------------------------
+\draw[rounded corners=8pt, draw=ghostgray!70, fill=lightfill] (0.85,-0.82) rectangle (12.85,-0.02);
+
+% scalar amplitude
+\fill[topoblue!25] (1.6,-0.35) circle (0.12);
+\node[baseNode] at (1.6,-0.35) {};
+\node[noteLabel, anchor=west] at (1.90,-0.42) {scalar amplitude};
+
+% orientation
+\draw[legendArrow] (4.45,-0.42) -- (5.45,-0.42);
+\node[noteLabel, anchor=west] at (5.70,-0.42) {oriented edge signal};
+
+% simplex intensity
+\fill[topoblue!20] (9.00,-0.54) -- (9.34,-0.42) -- (9.00,-0.30) -- (8.66,-0.42) -- cycle;
+\node[noteLabel, anchor=west] at (9.58,-0.42) {simplex intensity / circulation};
+
+\end{tikzpicture}
+\caption{
+Signals on simplices of different order over the same underlying simplicial complex: node signals in $C_0$, oriented edge signals in $C_1$, and triangle-level signals in $C_2$. The display treats the three signal types as parallel views of the same base higher-order structure.
+}
+\label{fig:chains}
+\end{figure*}
+}
+
+% ============================================================================
+% Figure A3
+% Name: Alignment into ambient chain space
+% Purpose: Formal embedding diagram for layerwise chain spaces into common Ctil_p.
+% Insert near: Coupling/alignment section after embedding definition
+% ============================================================================
+\newcommand{\FigureAThree}{
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[x=1cm,y=1cm,>=Latex,scale=1.12,every node/.style={transform shape}]
+
+% ----------------------------
+% Color palette
+% ----------------------------
+\definecolor{topoblue}{RGB}{70,120,200}
+\definecolor{couplered}{RGB}{190,95,95}
+\definecolor{harmgreen}{RGB}{80,150,110}
+\definecolor{ghostgray}{RGB}{180,180,180}
+\definecolor{framegray}{RGB}{80,80,80}
+\definecolor{lightfill}{RGB}{245,247,250}
+
+% ----------------------------
+% Styles
+% ----------------------------
+\tikzset{
+    sheet/.style={
+        rounded corners=3pt,
+        draw=framegray,
+        fill=lightfill,
+        line width=0.8pt
+    },
+    ambient/.style={
+        rounded corners=3pt,
+        draw=framegray,
+        fill=white,
+        line width=0.85pt
+    },
+    gate/.style={
+        rounded corners=2pt,
+        draw=framegray,
+        fill=lightfill,
+        line width=0.8pt
+    },
+    simplexNode/.style={
+        circle, draw=framegray, fill=white,
+        inner sep=0pt, minimum size=4.4pt, line width=0.7pt
+    },
+    simplexEdge/.style={draw=topoblue, line width=0.9pt},
+    faintEdge/.style={draw=ghostgray, line width=0.7pt},
+    mapArrow/.style={->, draw=framegray, line width=0.9pt},
+    smallLabel/.style={font=\scriptsize},
+    mainLabel/.style={font=\small},
+    coordLabel/.style={font=\scriptsize, text=framegray},
+    zeroLabel/.style={font=\scriptsize, text=ghostgray},
+    solidSlot/.style={draw=topoblue!70, line width=0.7pt},
+    zeroSlot/.style={draw=ghostgray!75, dashed, line width=0.6pt}
+}
+
+% ----------------------------
+% Left source sheets
+% ----------------------------
+
+% Sheet 1 center
+\coordinate (S1) at (2.3,3.45);
+% Sheet 2 center
+\coordinate (S2) at (2.3,1.45);
+
+% Sheet 1 rotated box
+\begin{scope}[shift={(S1)}, rotate=0]
+    \draw[sheet] (-1.5,-0.65) rectangle (1.5,0.65);
+    \node[mainLabel] at (0,0.95) {$C_p\!\left(K^{(1)}\right)$};
+
+    % miniature simplex icons / coordinates
+    \coordinate (s1a) at (-0.95,-0.05);
+    \coordinate (s1b) at (-0.45,0.28);
+    \coordinate (s1c) at (0.10,-0.02);
+    \coordinate (s1d) at (0.65,0.24);
+
+    \draw[simplexEdge] (s1a)--(s1b)--(s1c);
+    \draw[simplexEdge] (s1a)--(s1c);
+    \fill[topoblue!18] (s1a)--(s1b)--(s1c)--cycle;
+    \draw[simplexEdge] (s1c)--(s1d);
+
+    \node[simplexNode] at (s1a) {};
+    \node[simplexNode] at (s1b) {};
+    \node[simplexNode] at (s1c) {};
+    \node[simplexNode] at (s1d) {};
+
+    \node[coordLabel] at (-0.95,-0.42) {$e_1$};
+    \node[coordLabel] at (-0.12,-0.42) {$e_2$};
+    \node[coordLabel] at (0.72,-0.42) {$e_4$};
+\end{scope}
+
+% Sheet 2 rotated box
+\begin{scope}[shift={(S2)}, rotate=0]
+    \draw[sheet] (-1.5,-0.65) rectangle (1.5,0.65);
+    \node[mainLabel] at (0,0.95) {$C_p\!\left(K^{(2)}\right)$};
+
+    % miniature simplex icons / coordinates
+    \coordinate (s2a) at (-0.95,-0.05);
+    \coordinate (s2b) at (-0.35,0.24);
+    \coordinate (s2c) at (0.15,-0.08);
+    \coordinate (s2d) at (0.72,0.20);
+
+    \draw[simplexEdge] (s2a)--(s2b)--(s2c);
+    \draw[simplexEdge] (s2a)--(s2c);
+    \draw[simplexEdge] (s2c)--(s2d);
+
+    \node[simplexNode] at (s2a) {};
+    \node[simplexNode] at (s2b) {};
+    \node[simplexNode] at (s2c) {};
+    \node[simplexNode] at (s2d) {};
+
+    \node[coordLabel] at (-0.95,-0.42) {$e_1$};
+    \node[coordLabel] at (-0.12,-0.42) {$e_3$};
+    \node[coordLabel] at (0.72,-0.42) {$e_4$};
+\end{scope}
+
+% ----------------------------
+% Registration gate
+% ----------------------------
+\draw[gate] (5.45,0.75) rectangle (7.10,4.15);
+
+% crosshair corners
+\draw[framegray] (5.62,3.98) -- (5.78,3.98);
+\draw[framegray] (5.62,3.98) -- (5.62,3.82);
+
+\draw[framegray] (6.93,3.98) -- (6.77,3.98);
+\draw[framegray] (6.93,3.98) -- (6.93,3.82);
+
+\draw[framegray] (5.62,0.92) -- (5.78,0.92);
+\draw[framegray] (5.62,0.92) -- (5.62,1.08);
+
+\draw[framegray] (6.93,0.92) -- (6.77,0.92);
+\draw[framegray] (6.93,0.92) -- (6.93,1.08);
+
+% faint internal grid
+\draw[ghostgray!70, line width=0.4pt] (6.28,0.95) -- (6.28,3.95);
+\draw[ghostgray!70, line width=0.4pt] (5.70,2.45) -- (6.86,2.45);
+
+\node[smallLabel, align=center, fill=lightfill, inner sep=1pt] at (6.28,2.72) {aligned\\reference set};
+\node[mainLabel, fill=lightfill, inner sep=1pt] at (6.28,1.90) {$\Sigma_p$};
+
+% ----------------------------
+% Mapping arrows
+% ----------------------------
+\draw[mapArrow] (3.90,3.25) to[out=0,in=180] node[smallLabel, above] {$E_p^{(1)}$} (5.55,3.05);
+\draw[mapArrow] (3.90,1.65) to[out=0,in=180] node[smallLabel, below] {$E_p^{(2)}$} (5.55,1.85);
+
+% ----------------------------
+% Ambient panel
+% ----------------------------
+\draw[ambient] (8.15,0.60) rectangle (14.25,4.35);
+\node[mainLabel] at (11.20,4.65) {$\widetilde{C}_p \cong \mathbb{R}^{N_p}$};
+
+% separators
+\draw[ghostgray, line width=0.6pt] (10.00,0.85) -- (10.00,4.10);
+\draw[ghostgray, line width=0.6pt] (11.80,0.85) -- (11.80,4.10);
+
+% headers
+\node[smallLabel] at (9.18,3.98) {basis};
+\node[smallLabel] at (10.82,3.98) {$x^{(1)}$};
+\node[smallLabel] at (12.42,3.98) {$x^{(2)}$};
+
+% basis coordinates
+\node[coordLabel] at (9.15,3.45) {$e_1$};
+\node[coordLabel] at (9.15,2.90) {$e_2$};
+\node[coordLabel] at (9.15,2.35) {$e_3$};
+\node[coordLabel] at (9.15,1.80) {$e_4$};
+\node[coordLabel] at (9.15,1.25) {$\vdots$};
+
+% Slots for x^(1)
+\draw[solidSlot] (10.45,3.35) rectangle (11.20,3.55);
+\draw[solidSlot] (10.45,2.80) rectangle (11.20,3.00);
+\draw[zeroSlot]  (10.45,2.25) rectangle (11.20,2.45);
+\draw[solidSlot] (10.45,1.70) rectangle (11.20,1.90);
+\draw[zeroSlot]  (10.45,1.15) rectangle (11.20,1.35);
+
+\node[smallLabel] at (10.82,3.45) {$\hat c^{(1)}_{1}$};
+\node[smallLabel] at (10.82,2.90) {$\hat c^{(1)}_{2}$};
+\node[zeroLabel]  at (10.82,2.35) {$0$};
+\node[smallLabel] at (10.82,1.80) {$\hat c^{(1)}_{4}$};
+\node[zeroLabel]  at (10.82,1.25) {$\cdots$};
+
+% Slots for x^(2)
+\draw[solidSlot] (12.05,3.35) rectangle (12.80,3.55);
+\draw[zeroSlot]  (12.05,2.80) rectangle (12.80,3.00);
+\draw[solidSlot] (12.05,2.25) rectangle (12.80,2.45);
+\draw[solidSlot] (12.05,1.70) rectangle (12.80,1.90);
+\draw[zeroSlot]  (12.05,1.15) rectangle (12.80,1.35);
+
+\node[smallLabel] at (12.42,3.45) {$\hat c^{(2)}_{1}$};
+\node[zeroLabel]  at (12.42,2.90) {$0$};
+\node[smallLabel] at (12.42,2.35) {$\hat c^{(2)}_{3}$};
+\node[smallLabel] at (12.42,1.80) {$\hat c^{(2)}_{4}$};
+\node[zeroLabel]  at (12.42,1.25) {$\cdots$};
+
+% right-side note
+\node[smallLabel, align=left, text=framegray, anchor=west, fill=white, inner sep=1pt] at (13.10,1.95) {absent simplex\\$\rightarrow 0$};
+
+% ----------------------------
+% Rightward arrow from gate to ambient space
+% ----------------------------
+\draw[mapArrow] (7.10,2.45) -- (8.15,2.45);
+
+\end{tikzpicture}
+\caption{
+Alignment of layerwise chain spaces into a shared ambient basis. Each layer is embedded by a coordinate-alignment map $E_p^{(i)}$ into the common ambient chain space $\widetilde{C}_p$, with missing simplices represented by zero-padding so that cross-layer coupling is defined on matched coordinates.
+}
+\label{fig:alignment}
+\end{figure*}
+}
+
+% ============================================================================
+% Figure A4
+% Name: Block structure of the Supra-Hodge Laplacian
+% Purpose: Matrix-level diagram separating diagonal Hodge terms and off-diagonal
+%          coupling terms.
+% Insert near: Definition of L_p (immediately after block definition)
+% ============================================================================
+\newcommand{\FigureAFour}{
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[x=1cm,y=1cm,>=Latex,scale=1.12,every node/.style={transform shape}]
+
+% ----------------------------
+% Color palette
+% ----------------------------
+\definecolor{topoblue}{RGB}{70,120,200}
+\definecolor{couplered}{RGB}{190,95,95}
+\definecolor{harmgreen}{RGB}{80,150,110}
+\definecolor{ghostgray}{RGB}{180,180,180}
+\definecolor{framegray}{RGB}{80,80,80}
+\definecolor{lightfill}{RGB}{245,247,250}
+
+% ----------------------------
+% Styles
+% ----------------------------
+\tikzset{
+    outerFrame/.style={
+        rounded corners=4pt,
+        draw=framegray,
+        line width=0.85pt
+    },
+    diagBlock/.style={
+        rounded corners=2pt,
+        draw=topoblue!85!black,
+        fill=topoblue!10,
+        line width=0.9pt
+    },
+    offBlock/.style={
+        rounded corners=2pt,
+        draw=couplered!85!black,
+        fill=couplered!8,
+        line width=0.85pt
+    },
+    insetFrame/.style={
+        rounded corners=3pt,
+        draw=framegray,
+        fill=white,
+        line width=0.8pt
+    },
+    cable/.style={->, draw=framegray, line width=0.95pt},
+    outputArrow/.style={->, draw=framegray, line width=1.05pt},
+    swirl/.style={->, draw=topoblue!80, line width=0.8pt},
+    titleStyle/.style={font=\small},
+    miniStyle/.style={font=\scriptsize},
+    noteStyle/.style={font=\scriptsize, text=framegray},
+    mathStyle/.style={font=\scriptsize},
+    dotsStyle/.style={font=\large, text=ghostgray}
+}
+
+% ----------------------------
+% Title
+% ----------------------------
+\node[titleStyle] at (6.3,5.40) {Supra-Hodge assembly};
+
+% ----------------------------
+% Left input signals
+% ----------------------------
+\draw[cable] (0.7,4.0) -- (2.3,4.0);
+\draw[cable] (0.7,2.7) -- (2.3,2.7);
+\draw[cable] (0.7,1.4) -- (2.3,1.4);
+
+\node[miniStyle, anchor=east] at (0.55,4.0) {$v^{(1)}$};
+\node[miniStyle, anchor=east] at (0.55,2.7) {$v^{(2)}$};
+\node[miniStyle, anchor=east] at (0.55,1.4) {$v^{(3)}$};
+
+% ----------------------------
+% Central machine frame
+% ----------------------------
+\draw[outerFrame, fill=lightfill] (3.0,0.8) rectangle (9.7,4.6);
+
+% faint matrix guides
+\draw[ghostgray!70, line width=0.45pt] (5.3,0.95) -- (5.3,4.45);
+\draw[ghostgray!70, line width=0.45pt] (7.4,0.95) -- (7.4,4.45);
+\draw[ghostgray!70, line width=0.45pt] (3.15,3.35) -- (9.55,3.35);
+\draw[ghostgray!70, line width=0.45pt] (3.15,2.05) -- (9.55,2.05);
+
+% ----------------------------
+% Diagonal Hodge blocks
+% ----------------------------
+\draw[diagBlock] (3.45,3.65) rectangle (5.05,4.35);
+\draw[diagBlock] (5.55,2.35) rectangle (7.15,3.05);
+\draw[diagBlock] (7.65,1.05) rectangle (9.25,1.75);
+
+\node[mathStyle] at (4.25,4.00) {$H_p^{(1)} + d_1 I$};
+\node[mathStyle] at (6.35,2.70) {$H_p^{(2)} + d_2 I$};
+\node[mathStyle] at (8.45,1.40) {$H_p^{(3)} + d_3 I$};
+
+% tiny internal swirl cues
+\draw[swirl] (4.55,4.00) arc[start angle=30,end angle=320,radius=0.11];
+\draw[swirl] (6.65,2.70) arc[start angle=30,end angle=320,radius=0.11];
+\draw[swirl] (8.75,1.40) arc[start angle=30,end angle=320,radius=0.11];
+
+% ----------------------------
+% Off-diagonal coupling blocks
+% ----------------------------
+\draw[offBlock] (5.72,3.77) rectangle (6.98,4.23);
+\draw[offBlock] (3.62,2.47) rectangle (4.88,2.93);
+\draw[offBlock] (7.82,2.47) rectangle (9.08,2.93);
+\draw[offBlock] (5.72,1.17) rectangle (6.98,1.63);
+
+\node[mathStyle] at (6.35,4.00) {$-\omega_{12} I$};
+\node[mathStyle] at (4.25,2.70) {$-\omega_{21} I$};
+\node[mathStyle] at (8.45,2.70) {$-\omega_{23} I$};
+\node[mathStyle] at (6.35,1.40) {$-\omega_{32} I$};
+
+% faded omitted entries
+\node[dotsStyle] at (8.45,4.00) {$\cdots$};
+\node[dotsStyle] at (4.25,1.40) {$\cdots$};
+
+% ----------------------------
+% Input arrows into machine
+% ----------------------------
+\draw[cable] (2.3,4.0) -- (3.45,4.0);
+\draw[cable] (2.3,2.7) -- (3.62,2.7);
+\draw[cable] (2.3,1.4) -- (5.72,1.4);
+
+% ----------------------------
+% Output arrow to matrix inset
+% ----------------------------
+\draw[outputArrow] (9.7,2.7) -- (10.5,2.7);
+
+% ----------------------------
+% Matrix inset
+% ----------------------------
+\draw[insetFrame] (10.60,1.15) rectangle (13.85,4.25);
+
+\node[titleStyle] at (12.22,4.55) {$L_p$};
+
+\node[mathStyle, align=center] at (12.22,2.70) {%
+$\displaystyle
+L_p=
+\begin{bmatrix}
+H_p^{(1)}+d_1I & -\omega_{12}I & \cdots \\
+-\omega_{21}I & H_p^{(2)}+d_2I & \cdots \\
+\vdots & \vdots & \ddots
+\end{bmatrix}
+$};
+
+% ----------------------------
+% Bottom notes
+% ----------------------------
+\node[noteStyle, align=center, fill=white, inner sep=1pt] at (4.05,0.20) {diagonal: intra-layer topology};
+\node[noteStyle, align=center, fill=white, inner sep=1pt] at (8.95,0.20) {off-diagonal: cross-layer coupling};
+
+% ----------------------------
+% Optional labels inside main frame
+% ----------------------------
+\node[miniStyle, text=framegray, fill=lightfill, inner sep=1pt] at (4.55,4.42) {block operator view};
+\node[miniStyle, text=framegray, fill=lightfill, inner sep=1pt] at (8.10,4.42) {coupled assembly};
+
+\end{tikzpicture}
+\caption{
+Block-operator view of the Supra-Hodge assembly. Diagonal blocks encode layerwise Hodge structure augmented by coupling-degree terms, while off-diagonal blocks encode inter-layer attraction. The machine-like layout preserves the matrix semantics of $L_p$ while making the separation between intra-layer topology and cross-layer coupling visually explicit.
+}
+\label{fig:block}
+\end{figure*}
+}
+
+% ============================================================================
+% Figure A5
+% Name: Energy decomposition
+% Purpose: Geometry-meets-algebra picture for v^T L_p v decomposition.
+% Insert near: Fundamental properties section, immediately after Prop. sh_energy
+% ============================================================================
+\newcommand{\FigureAFive}{
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[x=1cm,y=1cm,>=Latex,scale=1.12,every node/.style={transform shape}]
+
+% ----------------------------
+% Color palette
+% ----------------------------
+\definecolor{topoblue}{RGB}{70,120,200}
+\definecolor{couplered}{RGB}{190,95,95}
+\definecolor{harmgreen}{RGB}{80,150,110}
+\definecolor{softgold}{RGB}{210,170,80}
+\definecolor{ghostgray}{RGB}{180,180,180}
+\definecolor{framegray}{RGB}{80,80,80}
+\definecolor{lightfill}{RGB}{245,247,250}
+
+% ----------------------------
+% Styles
+% ----------------------------
+\tikzset{
+    sourcePanel/.style={
+        rounded corners=4pt,
+        draw=framegray,
+        fill=lightfill,
+        line width=0.8pt
+    },
+    topoEdge/.style={draw=topoblue, line width=0.95pt},
+    faintEdge/.style={draw=ghostgray, line width=0.7pt},
+    coupling/.style={draw=couplered!80, line width=0.85pt},
+    softCoupling/.style={draw=couplered!60, dashed, line width=0.75pt},
+    basinLine/.style={draw=framegray, line width=1.0pt},
+    flowArrow/.style={->, draw=framegray, line width=0.95pt},
+    smallArrow/.style={->, draw=topoblue, line width=0.85pt},
+    titleStyle/.style={font=\small},
+    miniStyle/.style={font=\scriptsize},
+    noteStyle/.style={font=\scriptsize, text=framegray},
+    mathStyle/.style={font=\small}
+}
+
+% ----------------------------
+% Central equation
+% ----------------------------
+\draw[sourcePanel, fill=white] (5.82,4.70) rectangle (8.18,5.18);
+\node[mathStyle] at (7.0,4.94) {$\displaystyle v^\top L_p v$};
+
+% ----------------------------
+% Left source panel: within-layer roughness
+% ----------------------------
+\draw[sourcePanel] (1.0,2.5) rectangle (5.0,4.5);
+\node[titleStyle] at (3.0,4.78) {within-layer roughness};
+
+% simplicial layer
+\coordinate (La) at (1.8,3.0);
+\coordinate (Lb) at (3.0,2.8);
+\coordinate (Lc) at (4.1,3.3);
+\coordinate (Ld) at (3.3,4.0);
+\coordinate (Le) at (2.1,4.1);
+
+% faces
+\fill[topoblue!16] (La)--(Lb)--(Ld)--cycle;
+\fill[topoblue!10] (La)--(Ld)--(Le)--cycle;
+
+% edges
+\draw[topoEdge] (La)--(Lb)--(Lc);
+\draw[topoEdge] (La)--(Le)--(Ld)--(Lc);
+\draw[topoEdge] (Lb)--(Ld);
+\draw[topoEdge] (La)--(Ld);
+
+% nodes
+\fill[white] (La) circle (0.06);
+\fill[white] (Lb) circle (0.06);
+\fill[white] (Lc) circle (0.06);
+\fill[white] (Ld) circle (0.06);
+\fill[white] (Le) circle (0.06);
+
+\draw[framegray, line width=0.7pt] (La) circle (0.06);
+\draw[framegray, line width=0.7pt] (Lb) circle (0.06);
+\draw[framegray, line width=0.7pt] (Lc) circle (0.06);
+\draw[framegray, line width=0.7pt] (Ld) circle (0.06);
+\draw[framegray, line width=0.7pt] (Le) circle (0.06);
+
+% roughness cues
+\draw[smallArrow] (La) -- ($(Ld)!0.82!(La)$);
+\fill[couplered!35] (Lb) circle (0.10);
+
+% faint contour / roughness field
+\draw[ghostgray!80, line width=0.5pt]
+    (1.55,3.55) .. controls (2.15,3.85) and (3.05,3.15) .. (4.30,3.65);
+\draw[ghostgray!60, line width=0.45pt]
+    (1.55,3.30) .. controls (2.25,3.55) and (3.15,2.95) .. (4.20,3.40);
+
+\node[miniStyle] at (3.0,2.18)
+{$\displaystyle \sum_i \langle v^{(i)}, H_p^{(i)} v^{(i)} \rangle$};
+
+% ----------------------------
+% Right source panel: cross-layer disagreement
+% ----------------------------
+\draw[sourcePanel] (9.0,2.5) rectangle (13.0,4.5);
+\node[titleStyle] at (11.0,4.78) {cross-layer disagreement};
+
+% upper layer
+\coordinate (Ua) at (10.2,3.65);
+\coordinate (Ub) at (11.8,3.65);
+\coordinate (Uc) at (10.2,4.25);
+\coordinate (Ud) at (11.8,4.25);
+
+% lower layer
+\coordinate (Va) at (10.2,2.85);
+\coordinate (Vb) at (11.8,2.85);
+\coordinate (Vc) at (10.2,3.45);
+\coordinate (Vd) at (11.8,3.45);
+
+% upper layer face and edges
+\fill[topoblue!16] (Ua)--(Ub)--(Ud)--cycle;
+\draw[topoEdge] (Ua)--(Ub)--(Ud)--(Uc)--cycle;
+\draw[topoEdge] (Ua)--(Ud);
+
+% lower layer face and edges
+\fill[couplered!14] (Va)--(Vc)--(Vd)--cycle;
+\draw[couplered!80, line width=0.95pt] (Va)--(Vb)--(Vd)--(Vc)--cycle;
+\draw[couplered!80, line width=0.95pt] (Va)--(Vd);
+
+% nodes upper
+\foreach \pt in {Ua,Ub,Uc,Ud} {
+    \fill[white] (\pt) circle (0.055);
+    \draw[framegray, line width=0.7pt] (\pt) circle (0.055);
+}
+% nodes lower
+\foreach \pt in {Va,Vb,Vc,Vd} {
+    \fill[white] (\pt) circle (0.055);
+    \draw[framegray, line width=0.7pt] (\pt) circle (0.055);
+}
+
+% vertical couplings
+\draw[softCoupling] (Ua)--(Va);
+\draw[softCoupling] (Ub)--(Vb);
+\draw[softCoupling] (Uc)--(Vc);
+\draw[softCoupling] (Ud)--(Vd);
+
+\node[miniStyle] at (11.0,2.18)
+{$\displaystyle \sum_{i<j}\omega_{ij}\|v^{(i)}-v^{(j)}\|^2$};
+
+% ----------------------------
+% Tributary arrows into basin
+% ----------------------------
+\draw[flowArrow] (5.0,3.20) .. controls (5.85,2.85) and (6.20,2.25) .. (6.92,1.80);
+\draw[flowArrow] (9.0,3.20) .. controls (8.15,2.85) and (7.80,2.25) .. (7.08,1.80);
+
+% ----------------------------
+% Merge basin
+% ----------------------------
+% basin rim
+\draw[basinLine]
+    (5.70,1.55)
+    .. controls (6.10,1.25) and (6.55,1.05) .. (7.00,1.05)
+    .. controls (7.45,1.05) and (7.90,1.25) .. (8.30,1.55);
+
+% basin shoulders
+\draw[basinLine] (5.35,1.82) .. controls (5.50,1.68) and (5.60,1.60) .. (5.70,1.55);
+\draw[basinLine] (8.65,1.82) .. controls (8.50,1.68) and (8.40,1.60) .. (8.30,1.55);
+
+% light fill in basin
+\fill[lightfill]
+    (5.70,1.55)
+    .. controls (6.10,1.25) and (6.55,1.05) .. (7.00,1.05)
+    .. controls (7.45,1.05) and (7.90,1.25) .. (8.30,1.55)
+    -- (8.30,1.62) -- (5.70,1.62) -- cycle;
+
+\node[miniStyle, fill=lightfill, inner sep=1pt] at (7.0,1.35) {total energy};
+
+% ----------------------------
+% Tiny visual hints beneath equation
+% ----------------------------
+\node[noteStyle, fill=white, inner sep=1pt] at (3.0,0.82) {local topological incompatibility};
+\node[noteStyle, fill=white, inner sep=1pt] at (11.0,0.82) {cross-layer mismatch};
+
+\end{tikzpicture}
+\caption{
+Energy decomposition for the Supra-Hodge operator. The total quadratic form $v^\top L_p v$ splits into a within-layer contribution measuring topological roughness inside each layer and an inter-layer contribution measuring disagreement across coupled layers. The tributary layout emphasizes that both sources feed the same total energy landscape.
+}
+\label{fig:energy}
+\end{figure*}
+}
+
+% ============================================================================
+% Figure A6
+% Name: Consensus-harmonic nullspace
+% Purpose: Visual intuition for theorem: harmonicity in each layer + agreement
+%          across coupled layers.
+% Insert near: Nullspace intuition / just before main theorem
+% ============================================================================
+\newcommand{\FigureASix}{
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[x=1cm,y=1cm,>=Latex,scale=1.10,every node/.style={transform shape}]
+
+% ----------------------------
+% Color palette
+% ----------------------------
+\definecolor{topoblue}{RGB}{70,120,200}
+\definecolor{couplered}{RGB}{190,95,95}
+\definecolor{harmgreen}{RGB}{80,150,110}
+\definecolor{ghostgray}{RGB}{180,180,180}
+\definecolor{framegray}{RGB}{80,80,80}
+\definecolor{lightfill}{RGB}{245,247,250}
+
+% ----------------------------
+% Styles
+% ----------------------------
+\tikzset{
+    panelFrame/.style={
+        rounded corners=4pt,
+        draw=framegray,
+        fill=lightfill,
+        line width=0.8pt
+    },
+    layerEdge/.style={draw=framegray, line width=0.9pt},
+    goodEdge/.style={draw=harmgreen!85!black, line width=0.95pt},
+    badEdge/.style={draw=couplered!85!black, line width=0.95pt},
+    alignGood/.style={draw=harmgreen!75!black, line width=0.8pt},
+    alignBad/.style={draw=couplered!80, line width=0.8pt},
+    nodeStyle/.style={
+        circle, draw=framegray, fill=white,
+        inner sep=0pt, minimum size=4.6pt, line width=0.75pt
+    },
+    titleStyle/.style={font=\small},
+    miniStyle/.style={font=\scriptsize},
+    noteStyle/.style={font=\scriptsize, text=framegray},
+    mathStyle/.style={font=\scriptsize}
+}
+
+% ----------------------------
+% Panel frames
+% ----------------------------
+\draw[panelFrame] (0.5,0.75) rectangle (6.2,5.00);
+\draw[panelFrame] (7.0,0.75) rectangle (12.7,5.00);
+
+\node[titleStyle] at (3.35,5.32) {consensus-harmonic mode};
+\node[titleStyle] at (9.85,5.32) {non-consensus contrast};
+
+% divider note
+\node[miniStyle, text=framegray, fill=white, inner sep=1pt] at (6.60,5.12) {$\ker(L_p)$};
+
+% ----------------------------
+% LEFT PANEL: consensus-harmonic
+% ----------------------------
+
+% layer centers
+\coordinate (L1) at (3.35,4.10);
+\coordinate (L2) at (3.35,2.90);
+\coordinate (L3) at (3.35,1.70);
+
+% --- Layer 1
+\coordinate (l1a) at ($(L1)+(-0.75,-0.25)$);
+\coordinate (l1b) at ($(L1)+( 0.75,-0.25)$);
+\coordinate (l1c) at ($(L1)+(-0.75, 0.45)$);
+\coordinate (l1d) at ($(L1)+( 0.75, 0.45)$);
+
+\fill[harmgreen!16] (l1a)--(l1b)--(l1d)--cycle;
+\draw[goodEdge] (l1a)--(l1b)--(l1d)--(l1c)--cycle;
+\draw[goodEdge] (l1a)--(l1d);
+\draw[->, draw=harmgreen!85!black, line width=0.85pt, shorten <=2pt, shorten >=2pt] (l1a)--(l1d);
+
+\node[nodeStyle] at (l1a) {};
+\node[nodeStyle] at (l1b) {};
+\node[nodeStyle] at (l1c) {};
+\node[nodeStyle] at (l1d) {};
+
+% --- Layer 2
+\coordinate (l2a) at ($(L2)+(-0.75,-0.25)$);
+\coordinate (l2b) at ($(L2)+( 0.75,-0.25)$);
+\coordinate (l2c) at ($(L2)+(-0.75, 0.45)$);
+\coordinate (l2d) at ($(L2)+( 0.75, 0.45)$);
+
+\fill[harmgreen!16] (l2a)--(l2b)--(l2d)--cycle;
+\draw[goodEdge] (l2a)--(l2b)--(l2d)--(l2c)--cycle;
+\draw[goodEdge] (l2a)--(l2d);
+\draw[->, draw=harmgreen!85!black, line width=0.85pt, shorten <=2pt, shorten >=2pt] (l2a)--(l2d);
+
+\node[nodeStyle] at (l2a) {};
+\node[nodeStyle] at (l2b) {};
+\node[nodeStyle] at (l2c) {};
+\node[nodeStyle] at (l2d) {};
+
+% --- Layer 3
+\coordinate (l3a) at ($(L3)+(-0.75,-0.25)$);
+\coordinate (l3b) at ($(L3)+( 0.75,-0.25)$);
+\coordinate (l3c) at ($(L3)+(-0.75, 0.45)$);
+\coordinate (l3d) at ($(L3)+( 0.75, 0.45)$);
+
+\fill[harmgreen!16] (l3a)--(l3b)--(l3d)--cycle;
+\draw[goodEdge] (l3a)--(l3b)--(l3d)--(l3c)--cycle;
+\draw[goodEdge] (l3a)--(l3d);
+\draw[->, draw=harmgreen!85!black, line width=0.85pt, shorten <=2pt, shorten >=2pt] (l3a)--(l3d);
+
+\node[nodeStyle] at (l3a) {};
+\node[nodeStyle] at (l3b) {};
+\node[nodeStyle] at (l3c) {};
+\node[nodeStyle] at (l3d) {};
+
+% vertical alignment links
+\draw[alignGood] (l1a)--(l2a)--(l3a);
+\draw[alignGood] (l1b)--(l2b)--(l3b);
+\draw[alignGood] (l1c)--(l2c)--(l3c);
+\draw[alignGood] (l1d)--(l2d)--(l3d);
+
+% smooth shared wave trace
+\draw[harmgreen!70, line width=0.8pt]
+    (1.25,4.28)
+    .. controls (2.05,4.42) and (2.65,3.95) .. (3.35,4.12)
+    .. controls (4.05,4.28) and (4.55,3.82) .. (5.15,3.98)
+    .. controls (5.00,3.55) and (4.60,3.35) .. (4.10,3.18)
+    .. controls (3.55,3.00) and (3.00,2.72) .. (2.55,2.55)
+    .. controls (2.10,2.38) and (1.75,2.10) .. (1.45,1.96)
+    .. controls (2.05,2.12) and (2.60,1.72) .. (3.30,1.88)
+    .. controls (4.00,2.05) and (4.55,1.55) .. (5.10,1.72);
+
+% equations
+\node[mathStyle, fill=lightfill, inner sep=1pt] at (5.00,4.10) {$H_p^{(1)}v^{(1)}=0$};
+\node[mathStyle, fill=lightfill, inner sep=1pt] at (5.00,2.90) {$H_p^{(2)}v^{(2)}=0$};
+\node[mathStyle, fill=lightfill, inner sep=1pt] at (5.00,1.70) {$H_p^{(3)}v^{(3)}=0$};
+
+\node[miniStyle] at (3.35,0.42) {$v^{(1)} = v^{(2)} = v^{(3)}$};
+
+% ----------------------------
+% RIGHT PANEL: non-consensus contrast
+% ----------------------------
+
+% layer centers
+\coordinate (R1) at (9.65,4.10);
+\coordinate (R2) at (9.65,2.90);
+\coordinate (R3) at (9.65,1.70);
+
+% --- Top layer
+\coordinate (r1a) at ($(R1)+(-0.75,-0.25)$);
+\coordinate (r1b) at ($(R1)+( 0.75,-0.25)$);
+\coordinate (r1c) at ($(R1)+(-0.75, 0.45)$);
+\coordinate (r1d) at ($(R1)+( 0.75, 0.45)$);
+
+\fill[topoblue!16] (r1a)--(r1b)--(r1d)--cycle;
+\draw[layerEdge] (r1a)--(r1b)--(r1d)--(r1c)--cycle;
+\draw[layerEdge] (r1a)--(r1d);
+\draw[->, draw=topoblue!90!black, line width=0.85pt, shorten <=2pt, shorten >=2pt] (r1a)--(r1d);
+
+\node[nodeStyle] at (r1a) {};
+\node[nodeStyle] at (r1b) {};
+\node[nodeStyle] at (r1c) {};
+\node[nodeStyle] at (r1d) {};
+
+% --- Middle layer (flipped / discordant)
+\coordinate (r2a) at ($(R2)+(-0.75,-0.25)$);
+\coordinate (r2b) at ($(R2)+( 0.75,-0.25)$);
+\coordinate (r2c) at ($(R2)+(-0.75, 0.45)$);
+\coordinate (r2d) at ($(R2)+( 0.75, 0.45)$);
+
+\fill[couplered!16] (r2a)--(r2b)--(r2d)--cycle;
+\draw[badEdge] (r2a)--(r2b)--(r2d)--(r2c)--cycle;
+\draw[badEdge] (r2a)--(r2d);
+\draw[->, draw=couplered!90!black, line width=0.85pt, shorten <=2pt, shorten >=2pt] (r2d)--(r2a);
+
+\node[nodeStyle] at (r2a) {};
+\node[nodeStyle] at (r2b) {};
+\node[nodeStyle] at (r2c) {};
+\node[nodeStyle] at (r2d) {};
+
+% --- Bottom layer
+\coordinate (r3a) at ($(R3)+(-0.75,-0.25)$);
+\coordinate (r3b) at ($(R3)+( 0.75,-0.25)$);
+\coordinate (r3c) at ($(R3)+(-0.75, 0.45)$);
+\coordinate (r3d) at ($(R3)+( 0.75, 0.45)$);
+
+\fill[topoblue!16] (r3a)--(r3b)--(r3d)--cycle;
+\draw[layerEdge] (r3a)--(r3b)--(r3d)--(r3c)--cycle;
+\draw[layerEdge] (r3a)--(r3d);
+\draw[->, draw=topoblue!90!black, line width=0.85pt, shorten <=2pt, shorten >=2pt] (r3a)--(r3d);
+
+\node[nodeStyle] at (r3a) {};
+\node[nodeStyle] at (r3b) {};
+\node[nodeStyle] at (r3c) {};
+\node[nodeStyle] at (r3d) {};
+
+% broken / zig-zag couplings
+\draw[alignBad] (r1a) -- ($(r1a)!0.45!(r2a)+(0.08,-0.02)$) -- (r2a);
+\draw[alignBad] (r1b) -- ($(r1b)!0.45!(r2b)+(-0.08,-0.02)$) -- (r2b);
+\draw[alignBad] (r1c) -- ($(r1c)!0.45!(r2c)+(0.08,0.00)$) -- (r2c);
+\draw[alignBad] (r1d) -- ($(r1d)!0.45!(r2d)+(-0.08,0.00)$) -- (r2d);
+
+\draw[alignBad] (r2a) -- ($(r2a)!0.45!(r3a)+(-0.08,0.02)$) -- (r3a);
+\draw[alignBad] (r2b) -- ($(r2b)!0.45!(r3b)+(0.08,0.02)$) -- (r3b);
+\draw[alignBad] (r2c) -- ($(r2c)!0.45!(r3c)+(-0.08,0.00)$) -- (r3c);
+\draw[alignBad] (r2d) -- ($(r2d)!0.45!(r3d)+(0.08,0.00)$) -- (r3d);
+
+\node[miniStyle] at (9.85,0.42) {agreement broken across layers};
+
+\end{tikzpicture}
+\caption{
+Nullspace intuition for the Supra-Hodge operator. On the left, a stacked signal lies in $\ker(L_p)$ because it is harmonic in every layer and aligned across coupled layers. On the right, a cross-layer contrast breaks consensus, producing disagreement even when individual layer structures remain visually similar.
+}
+\label{fig:nullspace}
+\end{figure*}
+}
+
+% ============================================================================
+% Figure A7
+% Name: Spectral modes
+% Purpose: Show qualitative eigenmode regimes (near-zero, Fiedler-like, high).
+% Insert near: Spectral interpretation section introduction
+% ============================================================================
+\newcommand{\FigureASeven}{
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[x=1cm,y=1cm,>=Latex,scale=1.10,every node/.style={transform shape}]
+
+% ----------------------------
+% Color palette
+% ----------------------------
+\definecolor{topoblue}{RGB}{70,120,200}
+\definecolor{couplered}{RGB}{190,95,95}
+\definecolor{harmgreen}{RGB}{80,150,110}
+\definecolor{ghostgray}{RGB}{180,180,180}
+\definecolor{framegray}{RGB}{80,80,80}
+\definecolor{lightfill}{RGB}{245,247,250}
+
+% ----------------------------
+% Styles
+% ----------------------------
+\tikzset{
+    panelFrame/.style={
+        rounded corners=4pt,
+        draw=framegray,
+        fill=lightfill,
+        line width=0.8pt
+    },
+    baseEdge/.style={draw=framegray, line width=0.9pt},
+    nodeStyle/.style={
+        circle, draw=framegray, fill=white,
+        inner sep=0pt, minimum size=4.8pt, line width=0.75pt
+    },
+    titleStyle/.style={font=\small},
+    miniStyle/.style={font=\scriptsize},
+    noteStyle/.style={font=\scriptsize, text=framegray},
+    freqArrow/.style={->, draw=framegray, line width=0.95pt}
+}
+
+% ----------------------------
+% Panel frames
+% ----------------------------
+\draw[panelFrame] (0.5,0.8) rectangle (4.2,4.0);
+\draw[panelFrame] (5.0,0.8) rectangle (8.7,4.0);
+\draw[panelFrame] (9.5,0.8) rectangle (13.2,4.0);
+
+% ----------------------------
+% Panel 1: near-zero coherent mode
+% ----------------------------
+\node[titleStyle] at (2.35,4.25) {$\lambda \approx 0$};
+
+% calm background field
+\fill[harmgreen!10] (2.35,2.40) ellipse (1.45 and 1.05);
+\fill[topoblue!8]  (2.20,2.35) ellipse (1.10 and 0.82);
+
+% graph coordinates
+\coordinate (p1a) at (1.40,2.00);
+\coordinate (p1b) at (2.35,1.65);
+\coordinate (p1c) at (3.25,2.20);
+\coordinate (p1d) at (2.75,3.15);
+\coordinate (p1e) at (1.55,3.05);
+
+\draw[baseEdge] (p1a)--(p1b)--(p1c)--(p1d)--(p1e)--cycle;
+\draw[baseEdge] (p1a)--(p1d);
+\draw[baseEdge] (p1b)--(p1d);
+
+% nearly uniform node tones
+\fill[harmgreen!20] (p1a) circle (0.11);
+\fill[harmgreen!18] (p1b) circle (0.11);
+\fill[harmgreen!22] (p1c) circle (0.11);
+\fill[harmgreen!17] (p1d) circle (0.11);
+\fill[harmgreen!19] (p1e) circle (0.11);
+
+\node[nodeStyle] at (p1a) {};
+\node[nodeStyle] at (p1b) {};
+\node[nodeStyle] at (p1c) {};
+\node[nodeStyle] at (p1d) {};
+\node[nodeStyle] at (p1e) {};
+
+\node[miniStyle] at (2.35,0.68) {coherent plateau};
+
+% ----------------------------
+% Panel 2: Fiedler-type split
+% ----------------------------
+\node[titleStyle] at (6.85,4.25) {$\lambda_2$};
+
+% split background
+\fill[topoblue!12] (5.15,0.95) rectangle (6.95,3.85);
+\fill[couplered!12] (6.95,0.95) rectangle (8.55,3.85);
+
+% interface / fault line
+\draw[ghostgray!90, dashed, line width=0.8pt]
+    (6.95,1.10) .. controls (7.10,1.95) and (6.85,2.55) .. (7.00,3.55);
+
+% graph coordinates
+\coordinate (p2a) at (5.90,2.00);
+\coordinate (p2b) at (6.85,1.65);
+\coordinate (p2c) at (7.75,2.20);
+\coordinate (p2d) at (7.25,3.15);
+\coordinate (p2e) at (6.05,3.05);
+
+\draw[baseEdge] (p2a)--(p2b)--(p2c)--(p2d)--(p2e)--cycle;
+\draw[baseEdge] (p2a)--(p2d);
+\draw[baseEdge] (p2b)--(p2d);
+
+% signed partition node tones
+\fill[topoblue!28]   (p2a) circle (0.11);
+\fill[ghostgray!35]  (p2b) circle (0.11);
+\fill[couplered!28]  (p2c) circle (0.11);
+\fill[couplered!22]  (p2d) circle (0.11);
+\fill[topoblue!22]   (p2e) circle (0.11);
+
+\node[nodeStyle] at (p2a) {};
+\node[nodeStyle] at (p2b) {};
+\node[nodeStyle] at (p2c) {};
+\node[nodeStyle] at (p2d) {};
+\node[nodeStyle] at (p2e) {};
+
+\node[miniStyle] at (6.85,0.68) {signed partition};
+
+% ----------------------------
+% Panel 3: high-frequency oscillatory mode
+% ----------------------------
+\node[titleStyle] at (11.35,4.25) {$\lambda$ large};
+
+% alternating diagonal bands
+\begin{scope}
+\clip (9.6,0.9) rectangle (13.1,3.9);
+\fill[topoblue!10]  (8.9,1.0) -- (9.8,0.9) -- (12.7,3.9) -- (11.8,4.0) -- cycle;
+\fill[couplered!10] (9.4,0.9) -- (10.3,0.9) -- (13.2,3.9) -- (12.3,3.9) -- cycle;
+\fill[topoblue!10]  (9.9,0.9) -- (10.8,0.9) -- (13.7,3.9) -- (12.8,3.9) -- cycle;
+\fill[couplered!10] (10.4,0.9) -- (11.3,0.9) -- (14.2,3.9) -- (13.3,3.9) -- cycle;
+\end{scope}
+
+% graph coordinates
+\coordinate (p3a) at (10.40,2.00);
+\coordinate (p3b) at (11.35,1.65);
+\coordinate (p3c) at (12.25,2.20);
+\coordinate (p3d) at (11.75,3.15);
+\coordinate (p3e) at (10.55,3.05);
+
+\draw[baseEdge] (p3a)--(p3b)--(p3c)--(p3d)--(p3e)--cycle;
+\draw[baseEdge] (p3a)--(p3d);
+\draw[baseEdge] (p3b)--(p3d);
+
+% alternating node tones
+\fill[topoblue!30]  (p3a) circle (0.11);
+\fill[couplered!30] (p3b) circle (0.11);
+\fill[topoblue!30]  (p3c) circle (0.11);
+\fill[couplered!30] (p3d) circle (0.11);
+\fill[topoblue!26]  (p3e) circle (0.11);
+
+\node[nodeStyle] at (p3a) {};
+\node[nodeStyle] at (p3b) {};
+\node[nodeStyle] at (p3c) {};
+\node[nodeStyle] at (p3d) {};
+\node[nodeStyle] at (p3e) {};
+
+% optional short opposing arrows
+\draw[->, draw=topoblue!85!black, line width=0.75pt, shorten <=2pt, shorten >=2pt] (p3a)--(p3b);
+\draw[->, draw=couplered!85!black, line width=0.75pt, shorten <=2pt, shorten >=2pt] (p3d)--(p3b);
+
+\node[miniStyle] at (11.35,0.68) {rapid variation};
+
+% ----------------------------
+% Bottom progression arrow
+% ----------------------------
+\draw[freqArrow] (3.15,-0.02) -- (10.55,-0.02);
+\node[noteStyle, fill=white, inner sep=1pt] at (6.85,0.20) {smooth $\rightarrow$ partitioning $\rightarrow$ oscillatory};
+
+\end{tikzpicture}
+\caption{
+Spectral regimes of the Supra-Hodge operator, shown as progressively more oscillatory mode patterns on the same underlying relational structure. Near-zero modes capture coherent low-energy agreement, intermediate Fiedler-type modes expose structural fault lines or partitions, and high-frequency modes highlight rapidly varying inconsistency patterns.
+}
+\label{fig:spectrum}
+\end{figure*}
+}
+
+% ============================================================================
+% Figure A8
+% Name: End-to-end reasoning pipeline
+% Purpose: Three-layer architecture from data to operator construction to
+%          spectral diagnostics/outputs.
+% Insert near: Application/algorithm pipeline discussion (replaces old pipeline)
+% ============================================================================
+\newcommand{\FigureAEight}{
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[x=1cm,y=1cm,>=Latex,scale=1.12,every node/.style={transform shape}]
+
+% ----------------------------
+% Color palette
+% ----------------------------
+\definecolor{topoblue}{RGB}{70,120,200}
+\definecolor{couplered}{RGB}{190,95,95}
+\definecolor{harmgreen}{RGB}{80,150,110}
+\definecolor{ghostgray}{RGB}{180,180,180}
+\definecolor{framegray}{RGB}{80,80,80}
+\definecolor{lightfill}{RGB}{245,247,250}
+
+% ----------------------------
+% Styles
+% ----------------------------
+\tikzset{
+    room/.style={
+        rounded corners=5pt,
+        draw=framegray,
+        fill=lightfill,
+        line width=0.9pt
+    },
+    panel/.style={
+        rounded corners=3pt,
+        draw=framegray,
+        fill=white,
+        line width=0.8pt
+    },
+    screen/.style={
+        rounded corners=2pt,
+        draw=framegray,
+        fill=topoblue!6,
+        line width=0.75pt
+    },
+    nodeStyle/.style={
+        circle, draw=framegray, fill=white,
+        inner sep=0pt, minimum size=4.5pt, line width=0.7pt
+    },
+    edgeStyle/.style={draw=framegray, line width=0.8pt},
+    activeEdge/.style={draw=topoblue, line width=0.9pt},
+    coupling/.style={draw=couplered!80, dashed, line width=0.8pt},
+    arrowMain/.style={->, draw=framegray, line width=1.0pt},
+    arrowFlow/.style={->, draw=topoblue, line width=0.9pt},
+    titleStyle/.style={font=\small},
+    miniStyle/.style={font=\scriptsize},
+    noteStyle/.style={font=\scriptsize, text=framegray},
+    mathStyle/.style={font=\scriptsize}
+}
+
+% ----------------------------
+% Outer control room
+% ----------------------------
+\draw[room] (0.6,0.7) rectangle (13.4,5.2);
+\node[titleStyle] at (7.0,5.5) {reasoning control room};
+
+% ----------------------------
+% LEFT: Input stack (multi-layer signals)
+% ----------------------------
+\node[miniStyle] at (2.2,4.9) {layer stack};
+
+\coordinate (A1) at (2.2,3.9);
+\coordinate (A2) at (2.2,2.9);
+\coordinate (A3) at (2.2,1.9);
+
+% simple layer glyphs
+\foreach \c in {A1,A2,A3}{
+    \coordinate (n1) at ($(\c)+(-0.6,-0.2)$);
+    \coordinate (n2) at ($(\c)+(0.6,-0.2)$);
+    \coordinate (n3) at ($(\c)+(0.0,0.5)$);
+
+    \draw[edgeStyle] (n1)--(n2)--(n3)--cycle;
+    \node[nodeStyle] at (n1) {};
+    \node[nodeStyle] at (n2) {};
+    \node[nodeStyle] at (n3) {};
+}
+
+% vertical coupling hints
+\draw[coupling] (A1) -- (A2) -- (A3);
+
+% ----------------------------
+% CENTER: Operator core (L_p)
+% ----------------------------
+\draw[panel] (4.6,1.4) rectangle (8.4,4.6);
+\node[titleStyle] at (6.5,4.9) {$L_p$ operator};
+
+% internal block structure
+\draw[screen] (5.0,3.6) rectangle (6.4,4.3);
+\draw[screen] (6.6,2.7) rectangle (8.0,3.4);
+\draw[screen] (5.0,1.8) rectangle (6.4,2.5);
+
+\node[mathStyle] at (5.7,3.95) {$H^{(1)}$};
+\node[mathStyle] at (7.3,3.05) {$H^{(2)}$};
+\node[mathStyle] at (5.7,2.15) {$H^{(3)}$};
+
+% coupling blocks
+\draw[screen, fill=couplered!8] (6.6,3.6) rectangle (8.0,4.3);
+\draw[screen, fill=couplered!8] (5.0,2.7) rectangle (6.4,3.4);
+
+\node[mathStyle] at (7.3,3.95) {$-\omega I$};
+\node[mathStyle] at (5.7,3.05) {$-\omega I$};
+
+% arrows from layers into operator
+\draw[arrowMain] (2.9,3.9) -- (4.6,3.9);
+\draw[arrowMain] (2.9,2.9) -- (4.6,3.0);
+\draw[arrowMain] (2.9,1.9) -- (4.6,2.1);
+
+% ----------------------------
+% RIGHT: Monitoring screens
+% ----------------------------
+\node[miniStyle] at (11.0,4.9) {diagnostics};
+
+% screen 1: energy
+\draw[panel] (9.4,3.5) rectangle (12.8,4.6);
+\node[miniStyle] at (11.1,4.45) {energy};
+
+\draw[topoblue, line width=0.9pt]
+    (9.6,3.7) .. controls (10.2,4.2) and (11.2,3.2) .. (12.6,4.2);
+
+% screen 2: spectrum
+\draw[panel] (9.4,2.1) rectangle (12.8,3.2);
+\node[miniStyle] at (11.1,3.05) {spectrum};
+
+\foreach \x in {9.8,10.4,11.0,11.6,12.2}{
+    \draw[framegray, line width=0.7pt] (\x,2.2) -- (\x,2.6);
+}
+
+% screen 3: alignment
+\draw[panel] (9.4,0.9) rectangle (12.8,2.0);
+\node[miniStyle] at (11.1,1.85) {alignment};
+
+\draw[topoblue, line width=0.8pt] (9.7,1.2) -- (12.5,1.7);
+\draw[couplered, line width=0.8pt] (9.7,1.7) -- (12.5,1.2);
+
+% ----------------------------
+% Output arrow
+% ----------------------------
+\draw[arrowFlow] (8.4,3.0) -- (9.4,3.0);
+
+\node[noteStyle, fill=white, inner sep=1pt] at (7.0,0.30)
+{structured reasoning emerges from coupled higher-order signals};
+
+\end{tikzpicture}
+\caption{
+A systems-level view of Supra-Hodge reasoning. Multi-layer signals enter a coupled operator $L_p$, which encodes both intra-layer topology and inter-layer alignment. Downstream diagnostics expose energy, spectral structure, and alignment quality, providing interpretable signals for controlling reasoning behavior.
+}
+\label{fig:pipeline}
+\end{figure*}
+}

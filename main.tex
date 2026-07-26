@@ -1,0 +1,9 @@
+\IfFileExists{LatexCode.tex}{%
+  \input{LatexCode.tex}%
+}{%
+  \IfFileExists{latexcode.tex}{%
+    \input{latexcode.tex}%
+  }{%
+    \errmessage{Could not find LatexCode.tex (or latexcode.tex). Upload the main manuscript file to the project root.}%
+  }%
+}
