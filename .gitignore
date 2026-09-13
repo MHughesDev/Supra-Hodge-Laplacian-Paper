@@ -1,5 +1,2 @@
-# Ignore everything; allow only PDFs (and this file so rules persist after clone).
-*
-!*/
-!**/*.pdf
-!.gitignore
+# Secrets — never commit
+.env

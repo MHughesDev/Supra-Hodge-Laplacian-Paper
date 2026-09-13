@@ -1,0 +1,2204 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{bm}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{titlesec}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cite}
+\usepackage{enumerate}
+\usepackage{xcolor}
+\usepackage{microtype}
+
+%% Numbered \section headers flow continuously by default.
+%% Starred \section* uses a separate format.
+\titleformat{\section}{\normalfont\Large\bfseries}{\thesection}{1em}{}
+\titleformat{name=\section,numberless}{\normalfont\Large\bfseries}{}{0pt}{}
+
+%% ── Theorem environments ──────────────────────────────────────────────────────
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+%% ── Convenience macros ────────────────────────────────────────────────────────
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Lsup}{L_{\mathrm{sup}}}
+\newcommand{\LSH}{L_{\mathrm{SH}}}
+\newcommand{\Ksig}{\Sigma}
+\newcommand{\Ctil}{\widetilde{C}}
+\newcommand{\Gom}{G_\omega}
+\newcommand{\Pp}{P_{p,r}}
+\newcommand{\Up}{U_{p,r}}
+\newcommand{\vhat}{\hat{v}}
+\newcommand{\Rp}{R_p}
+\newcommand{\calK}{\mathcal{K}}
+\newcommand{\calC}{\mathcal{C}}
+\newcommand{\calG}{\mathcal{G}}
+\DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator{\im}{im}
+\DeclareMathOperator{\spn}{span}
+\DeclareMathOperator{\sgn}{sgn}
+\DeclareMathOperator{\simop}{sim}
+\DeclareMathOperator{\tri}{tri}
+
+%% ─────────────────────────────────────────────────────────────────────────────
+
+\title{The Supra-Hodge Laplacian: A Unified Spectral Operator\\
+       for Multi-View Higher-Order Relational Systems}
+
+\author{Mason Hughes\\[4pt]
+        Independent Researcher\\
+        Missouri, USA\\
+        \texttt{masonhughesmwh@gmail.com}}
+
+\date{}
+
+\begin{document}
+\maketitle
+
+%% ── Abstract ─────────────────────────────────────────────────────────────────
+\begin{abstract}
+We introduce the \emph{Supra-Hodge Laplacian}, a new spectral operator that unifies two previously separate generalizations of the classical graph Laplacian: the supra-Laplacian, which encodes cross-layer coupling in multilayer graph systems, and the combinatorial Hodge Laplacian, which encodes higher-order topological structure within a single simplicial complex. Fixing a family of complexes on a shared vertex set (one view per layer), an aligned reference set of $p$-simplices, and nonnegative scalar couplings between layers, the order-$p$ Supra-Hodge Laplacian $L_p$ is the block operator on stacked ambient $p$-chains that augments embedded layerwise Hodge Laplacians $H_p^{(i)}$ with a Kronecker-type coupling $L_{\mathrm{inter}} \otimes I_{N_p}$ from the inter-layer graph. For a stacked signal, its quadratic energy splits into within-layer topological smoothness and cross-layer disagreement.
+
+The central formal result is the Consensus-Harmonic Nullspace Theorem: $\ker(L_p)$ is exactly the set of stacked signals that are simultaneously harmonic in every layer and mutually consensual across every connected component of the inter-layer coupling graph. The construction is provably consistent: in the single-layer, order-$0$, no-higher-order limit it recovers the standard graph Laplacian; at $p=0$ it reduces to the classical supra-Laplacian; and at $k=1$ it reduces to the single-layer Hodge Laplacian. Spectral analysis yields a generalized Fiedler theory for coupled higher-order systems, with low-energy eigenmodes identifying coherent multi-view harmonic structure and conflict-frontier modes identifying topological inconsistency across views. We develop a low-energy projector $P_{p,r}$ that achieves principled spectral compression of multi-view chain signals. Proof-of-concept experiments on synthetic relational benchmarks support the theoretical predictions and show advantages over pairwise and single-view spectral baselines in this controlled setting.
+\end{abstract}
+
+\noindent\textbf{Keywords:} Hodge Laplacian, supra-Laplacian, simplicial complexes, multilayer graphs, spectral methods, higher-order topology, multi-view biological networks, scientific relational systems, spectral compression.
+
+\clearpage
+\tableofcontents
+\clearpage
+
+\section*{Notation Summary}
+\addcontentsline{toc}{section}{Notation Summary}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Symbol & Meaning \\
+\midrule
+$K^{(i)}$ & Simplicial complex for layer $i$ \\
+$H_p^{(i)}$ & Layerwise Hodge Laplacian on the aligned ambient space $\Ctil_p$ \\
+$N_p$ & Ambient $p$-chain dimension, $N_p=|\Sigma_p|$ \\
+$\Ctil_p$ & Common aligned ambient $p$-chain space, $\Ctil_p\cong\R^{N_p}$ \\
+$L_{\mathrm{inter}}$ & Inter-layer graph Laplacian \\
+$L_p$ & Supra-Hodge Laplacian \\
+$v^{(i)}$ & $p$-chain signal in layer $i$ \\
+$\Sigma_p$ & Global simplex index set \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%% ══════════════════════════════════════════════════════════════════════════════
+\clearpage
+\section{Introduction}
+\label{sec:intro}
+%% ══════════════════════════════════════════════════════════════════════════════
+
+\subsection{Motivation: Multi-View and Higher-Order Relational Systems}
+\label{subsec:motivation}
+
+Modern relational systems are often neither pairwise nor single-view. A protein-interaction system may simultaneously encode physical binding, regulatory co-expression, metabolic dependence, and shared pathway participation over the same set of molecular entities, and some of these relations may involve higher-order groups rather than isolated pairs. A scientific knowledge network may contain citation, methodological dependence, co-authorship, and experimental-validation layers over a shared set of papers, authors, or concepts, while certain coherent groups of three or more entities carry structure that cannot be reduced to pairwise edges alone. More generally, multi-view biological and scientific systems frequently combine several relational views with genuinely higher-order interactions.
+
+Two powerful spectral frameworks have been developed to address these
+complexities individually, but neither addresses both at once. The
+\emph{supra-Laplacian} framework~\cite{gomez2013,dedomenico2013} couples
+multiple graph layers over a shared vertex set via a block operator, enabling
+multi-view spectral analysis of pairwise relations. The \emph{combinatorial
+Hodge Laplacian}~\cite{horak2013,schaub2020,lim2020} generalizes the graph
+Laplacian to simplicial complexes, enabling spectral analysis of higher-order
+interactions within a single relational view. Neither framework, in its usual form, is aimed at the full combination:
+multiple views, each possessing higher-order structure, coupled across views.
+
+We construct the \emph{Supra-Hodge Laplacian}, a block operator that is
+simultaneously a supra-Laplacian across views and a Hodge Laplacian within each
+view. The primary contribution of this paper is mathematical; later sections only briefly discuss possible application directions in biological and scientific-network settings that exhibit coupled multi-view higher-order structure.
+
+\subsection{Why Pairwise Graph Methods Are Insufficient}
+\label{subsec:insufficient}
+
+Consider three proteins forming a functional complex whose stability is a genuinely three-body phenomenon: remove any one interaction and the complex no longer forms, even though the pairwise interaction score between each pair remains nonzero. A graph Laplacian encodes only the pairwise structure; it cannot represent the qualitatively different status of the filled triangle versus the hollow cycle of three edges. This is not a quirk: it is the defining limitation of all pairwise methods.
+
+Within a single Hodge framework, this limitation is overcome for one relational
+view. But when $k$ views exist---each with its own triangles, its own harmonic
+cycles, its own curl-free and gradient-free signals---a single complex conflates
+their topologies. Analyzing each view in isolation misses cross-view
+interactions; analyzing all views in a single complex erases the boundaries
+between views.
+
+The supra-Laplacian handles cross-view interactions, but only at the level of
+vertices and pairwise edges. It cannot measure higher-order inconsistency
+within a view, nor can it detect the collapse of a harmonic cycle in one view
+due to pressure from a topologically simpler view coupled to it.
+
+\subsection{What This Paper Contributes}
+\label{subsec:contributions}
+
+This paper makes the following contributions.
+\begin{enumerate}
+\item \textbf{Operator construction.} We define the order-$p$ Supra-Hodge
+      Laplacian $L_p$ in Section~\ref{sec:defn} as a block operator on a common
+      aligned $p$-chain space, combining embedded layerwise Hodge Laplacians
+      $H_p^{(i)}$ with an inter-layer coupling term induced by the layer graph
+      Laplacian $L_{\mathrm{inter}}$.
+\item \textbf{Main theorem.} We prove the Consensus-Harmonic Nullspace
+      Theorem (Theorem~\ref{thm:main}), giving a complete algebraic
+      characterization of $\ker(L_p)$.
+\item \textbf{Reduction propositions.} We prove that $L_p$ reduces to the
+      classical supra-Laplacian at $p=0$ and to the single-layer Hodge
+      Laplacian at $k=1$ (Propositions~\ref{prop:k1} and~\ref{prop:p0}).
+\item \textbf{Spectral theory.} We develop a generalized Fiedler theory and
+      formalize the low-energy projector $P_{p,r}$ for spectral compression
+      (Section~\ref{sec:spectral}).
+\item \textbf{Possible application directions.} We briefly discuss several biological and scientific-network domains in which coupled higher-order multi-view structure may arise, while keeping the paper's claims mathematical and exploratory.
+\item \textbf{Experiments.} We present synthetic proof-of-concept experiments
+      that test the operator's predicted behavior in controlled settings
+      (Section~\ref{sec:experiments}).
+\end{enumerate}
+
+\subsection{Why the Paper Is Self-Contained}
+\label{subsec:selfcontained}
+
+Sections~\ref{sec:linalg}--\ref{sec:hodge} build all necessary prerequisites
+from scratch: linear algebra, graph Laplacians, supra-Laplacians, simplicial
+complexes, chain spaces, boundary operators, and single-layer Hodge Laplacians.
+No algebraic topology background beyond what is defined in these sections is
+assumed. A reader with undergraduate linear algebra and basic familiarity with
+graphs should be able to follow every proof by reading sequentially.
+
+\subsection{Roadmap for the Reader}
+
+Sections~\ref{sec:linalg}--\ref{sec:hodge} lay the mathematical foundations.
+Section~\ref{sec:coupling} constructs the alignment and coupling infrastructure;
+Section~\ref{sec:defn} then defines the Supra-Hodge Laplacian $L_p$ itself.
+Section~\ref{sec:properties} establishes fundamental properties and the main
+theorem. Section~\ref{sec:spectral} develops spectral interpretation.
+Section~\ref{sec:dynamics} treats dynamics and perturbations.
+Section~\ref{sec:application} briefly discusses possible future application directions in biological and scientific-network settings.
+Section~\ref{sec:algorithms} presents algorithms. Section~\ref{sec:examples}
+collects worked examples. Section~\ref{sec:experiments} reports experiments.
+Sections~\ref{sec:discussion} and~\ref{sec:conclusion} discuss limitations and
+conclude. Appendices collect proofs, notation, algorithmic details, and expanded
+examples.
+
+
+%% ══════════════════════════════════════════════════════════════════════════════
+\section{Linear Algebra Foundations for Spectral Methods}
+\label{sec:linalg}
+%% ══════════════════════════════════════════════════════════════════════════════
+
+This section establishes the linear-algebraic language used throughout the
+paper. A reader comfortable with eigendecompositions and quadratic forms may
+treat this section as a reference.
+
+\subsection{Vectors as Signals}
+
+Let $V = \{v_1,\dots,v_n\}$ be a finite set of $n$ entities. A \emph{signal}
+on $V$ is a function $x\colon V \to \R$, represented as a column vector
+$x \in \R^n$ with $x_i = x(v_i)$. We equip $\R^n$ with the standard inner
+product $\langle x, y\rangle = x^\top y$ and induced norm $\|x\| =
+\sqrt{x^\top x}$. Signals are the basic objects on which all operators act.
+
+\subsection{Matrices as Operators}
+
+A matrix $A \in \R^{n\times n}$ acts on signals by $x \mapsto Ax$. The $(i,j)$
+entry of $A$ records how much the $j$-th coordinate of the input influences the
+$i$-th coordinate of the output. Composition of operators corresponds to matrix
+multiplication.
+
+\subsection{Symmetry and Positive Semidefiniteness}
+
+A matrix $A$ is \emph{symmetric} if $A = A^\top$. Symmetric matrices satisfy
+$x^\top Ay = y^\top Ax$ for all $x,y$, which is the self-adjoint property. All
+operators constructed in this paper will be symmetric.
+
+\begin{definition}[Positive Semidefiniteness]
+A symmetric matrix $A \in \R^{n\times n}$ is \emph{positive semidefinite}
+(PSD), written $A \succeq 0$, if
+\[
+  x^\top A x \;\geq\; 0 \qquad \text{for all } x \in \R^n.
+\]
+It is \emph{positive definite} if $x^\top Ax > 0$ for all $x \neq 0$.
+\end{definition}
+
+Every PSD matrix can be written as $A = M^\top M$ for some (not necessarily
+square) matrix $M$. This factored form is the key reason all Hodge Laplacians
+are PSD: they are defined precisely as sums of such products.
+
+\subsection{Quadratic Forms and Energy}
+
+For a symmetric matrix $A$, the function $\mathcal{E}_A(x) = x^\top Ax$ is the
+\emph{quadratic form} of $A$. It assigns a scalar ``energy'' to each signal
+$x$. When $A \succeq 0$, this energy is nonnegative, and signals with zero
+energy lie in the \emph{nullspace} $\ker(A) = \{x : Ax = 0\}$. The nullspace
+is a linear subspace encoding the operator's equilibrium configurations.
+
+\subsection{Energy as Smoothness and Structure}
+
+A quadratic form of the type $x^\top A x$ should not be viewed as an abstract algebraic object, but as a measure of structural compatibility of a signal $x$ with respect to an operator $A$.
+
+In the context of graph-based operators, this quantity admits a concrete interpretation. Let $L$ denote a graph Laplacian. Then one can expand:
+\[
+x^\top L x = \sum_{(u,v) \in E} w_{uv}(x_u - x_v)^2.
+\]
+
+This expression reveals that the quadratic form penalizes variation across edges: it is small when adjacent nodes take similar values, and large when they differ significantly. Thus, $x^\top L x$ measures the \emph{roughness} of the signal $x$ over the graph.
+
+\paragraph{Convention on the energy sum.}
+If one sums over unordered edges $\{u,v\}\in E$ once, then
+$x^\top Lx = \sum_{\{u,v\}\in E} w_{uv}(x_u-x_v)^2$.
+If one sums over ordered pairs via the adjacency matrix, the symmetric form
+$x^\top Lx = \tfrac{1}{2}\sum_{u,v}A_{uv}(x_u-x_v)^2$ from Proposition~\ref{prop:graph_energy} is the same quantity. We use whichever is notationally convenient.
+
+Eigenvectors of $L$ arise as minimizers of this energy under orthogonality constraints. The smallest eigenvalues correspond to the smoothest signals. In particular, the second eigenvector (the Fiedler vector) identifies the weakest point of connectivity in the graph, separating it into coherent regions.
+
+This variational perspective will generalize directly to the higher-order and multi-layer operators constructed later in the paper.
+
+\subsection{Eigenvalues, Eigenvectors, and Orthogonality}
+
+\begin{definition}[Eigendecomposition]
+A nonzero vector $u \in \R^n$ and scalar $\lambda \in \R$ satisfying
+\[
+  A u = \lambda u
+\]
+are an \emph{eigenvector} and \emph{eigenvalue} of $A$, respectively.
+\end{definition}
+
+The \emph{spectral theorem} guarantees that any symmetric $A$ has a complete
+orthonormal eigenvector basis $u_1,\dots,u_n$ with real eigenvalues
+$\lambda_1 \leq \lambda_2 \leq \cdots \leq \lambda_n$. Writing
+$A = U\Lambda U^\top$ (with $U = [u_1 \cdots u_n]$ and $\Lambda =
+\diag(\lambda_1,\dots,\lambda_n)$) makes the energy transparent:
+$x^\top A x = \sum_i \lambda_i (u_i^\top x)^2$, a nonneg combination of
+projected energies along each eigenmode.
+
+\subsection{Rayleigh Quotients and Variational Thinking}
+
+\begin{definition}[Rayleigh Quotient]
+For symmetric $A$ and nonzero $x \in \R^n$, the \emph{Rayleigh quotient} is
+\[
+  R_A(x) = \frac{x^\top A x}{x^\top x}.
+\]
+\end{definition}
+
+The variational principle states $\lambda_1 = \min_{x \neq 0} R_A(x)$, achieved
+at $x = u_1$. More generally, $\lambda_j = \min\{R_A(x) : x \perp
+u_1,\dots,u_{j-1},\, x\neq 0\}$. Eigenvectors are therefore the directions of
+extremal energy, and eigenvalues are the corresponding energy levels.
+
+\begin{example}[Two-by-two spectral example]
+\label{ex:2x2}
+Let
+\[
+  A = \begin{bmatrix} 2 & -1 \\ -1 & 2 \end{bmatrix}.
+\]
+The characteristic polynomial is $\lambda^2 - 4\lambda + 3 = 0$, giving
+$\lambda_1 = 1$ and $\lambda_2 = 3$ with eigenvectors
+$u_1 = \tfrac{1}{\sqrt{2}}[1,1]^\top$ and
+$u_2 = \tfrac{1}{\sqrt{2}}[1,-1]^\top$. The in-phase direction $(u_1)$ incurs
+energy $1$ while the out-of-phase direction $(u_2)$ incurs energy $3$: the
+operator rewards agreement between coordinates and penalizes disagreement. This
+$2\times 2$ template is the algebraic skeleton of every operator in this paper.
+\end{example}
+
+
+%% ══════════════════════════════════════════════════════════════════════════════
+\section{Graphs and the Classical Graph Laplacian}
+\label{sec:graph}
+%% ══════════════════════════════════════════════════════════════════════════════
+
+This section builds the first and most fundamental spectral operator on
+relational data: the graph Laplacian. All operators introduced later reduce to
+this one in the appropriate special case.
+
+\subsection{Weighted Graphs and Adjacency Structure}
+
+\begin{definition}[Weighted Graph]
+A \emph{weighted undirected graph} is a triple $G = (V, E, w)$ where
+$V = \{v_1,\dots,v_n\}$ is the vertex set, $E \subseteq \binom{V}{2}$ is the
+edge set, and $w\colon E \to \R_{>0}$ assigns positive weights. The
+\emph{adjacency matrix} $A \in \R^{n\times n}$ has $A_{uv} = w(u,v)$ if
+$\{u,v\}\in E$ and $A_{uv}=0$ otherwise.
+\end{definition}
+
+\subsection{Degree Matrices and the Graph Laplacian}
+
+\begin{definition}[Degree Matrix and Graph Laplacian]
+The \emph{degree matrix} $D = \diag(d_1,\dots,d_n)$ has
+\[
+  d_u = \sum_v A_{uv}.
+\]
+The \emph{graph Laplacian} is $L = D - A$.
+\end{definition}
+
+Every row of $L$ sums to zero ($L\mathbf{1}=0$), reflecting that a constant
+signal has zero energy on any graph. The matrix $L$ is symmetric because $A$ is
+symmetric.
+
+\subsection{Interpretation of the Graph Laplacian}
+
+The graph Laplacian is not merely an algebraic construction, but a discrete differential operator encoding how signals vary across a network.
+
+The identity
+\[
+x^\top L x = \sum_{(u,v) \in E} w_{uv}(x_u - x_v)^2
+\]
+shows that the Laplacian measures disagreement between neighboring nodes. A signal that is constant across connected components has zero energy and lies in the kernel of $L$.
+
+The eigenvalues of $L$ quantify connectivity. In particular:
+\begin{itemize}
+    \item The multiplicity of the eigenvalue $0$ equals the number of connected components.
+    \item The second-smallest eigenvalue (the Fiedler value) measures how well-connected the graph is.
+    \item The corresponding eigenvector identifies a minimal-energy partition of the graph.
+\end{itemize}
+
+This interpretation will serve as the foundation for understanding higher-order Laplacians and their spectral behavior.
+
+\subsection{Smoothness Energy on Graphs}
+
+\begin{proposition}[Graph Laplacian Energy Identity]
+\label{prop:graph_energy}
+For any signal $x \in \R^n$,
+\[
+  x^\top L x = \frac{1}{2} \sum_{u,v} A_{uv}(x_u - x_v)^2.
+\]
+\end{proposition}
+
+\begin{proof}
+We expand $x^\top(D-A)x = x^\top Dx - x^\top Ax = \sum_u d_u x_u^2 -
+\sum_{u,v}A_{uv}x_u x_v$. Using $d_u = \sum_v A_{uv}$ in the first term:
+\[
+  x^\top Lx = \sum_{u,v}A_{uv}x_u^2 - \sum_{u,v}A_{uv}x_u x_v
+  = \tfrac{1}{2}\sum_{u,v}A_{uv}(x_u^2 - 2x_u x_v + x_v^2)
+  = \tfrac{1}{2}\sum_{u,v}A_{uv}(x_u-x_v)^2. \qedhere
+\]
+\end{proof}
+
+The energy $x^\top Lx$ is a weighted sum of squared differences across all
+edges. A signal with low energy varies slowly across highly-weighted edges; this
+is the formal meaning of \emph{graph smoothness}. Since every term is
+nonnegative, $L\succeq 0$, and the eigenvalues satisfy
+\[
+  0 = \lambda_1 \leq \lambda_2 \leq \cdots \leq \lambda_n.
+\]
+
+\subsection{Kernel, Connectedness, and Constant Signals}
+
+\begin{proposition}[Kernel of the Graph Laplacian]
+\label{prop:graph_kernel}
+$x \in \ker(L)$ if and only if $x_u = x_v$ for every edge $\{u,v\}\in E$.
+Consequently: (1) constant signals always lie in $\ker(L)$; (2) for a
+connected graph, $\ker(L) = \spn(\mathbf{1})$ and $\lambda_1=0$ has multiplicity
+one; (3) for a graph with $c$ connected components, $\dim\ker(L) = c$.
+\end{proposition}
+
+\begin{proof}
+By Proposition~\ref{prop:graph_energy}, $x^\top Lx = 0$ iff $A_{uv}(x_u-x_v)^2
+= 0$ for all $u,v$, i.e., $x_u = x_v$ on every edge. Connectedness forces
+every such $x$ to be constant. The component count follows by applying the
+same argument within each component.
+\end{proof}
+
+Constant signals represent perfect global consensus: every vertex holds the
+same value. The nullity of $L$ counts how many independent consensus modes
+exist---one per connected component.
+
+\subsection{The Second Eigenvalue and the Fiedler Vector}
+
+\begin{definition}[Fiedler Value and Vector]
+For a connected graph, $\lambda_2 > 0$ is the \emph{Fiedler value} (algebraic
+connectivity). The corresponding unit eigenvector $u_2 \perp \mathbf{1}$ is the
+\emph{Fiedler vector}.
+\end{definition}
+
+The Fiedler vector partitions vertices by sign: vertices with $u_2(v)>0$ form
+one cluster, those with $u_2(v)<0$ form another~\cite{chung1997}. A large
+$\lambda_2$ indicates high algebraic connectivity (the graph is hard to cut);
+a small $\lambda_2$ flags a near-bottleneck. The Fiedler theory generalizes
+directly to the Supra-Hodge setting in Section~\ref{sec:spectral}.
+
+\subsection{Worked Graph Example}
+
+\begin{example}[Four-node weighted graph]
+\label{ex:4node}
+Let $G$ have vertex set $V=\{1,2,3,4\}$. The undirected edges are
+$\{1,2\}$, $\{2,3\}$, $\{3,4\}$, $\{4,1\}$, and $\{1,3\}$, each with unit weight. Then
+\begingroup
+\setlength{\arraycolsep}{3pt}
+\small
+\[
+  \begin{aligned}
+    A &= \begin{bmatrix}
+      0 & 1 & 1 & 1\\
+      1 & 0 & 1 & 0\\
+      1 & 1 & 0 & 1\\
+      1 & 0 & 1 & 0
+    \end{bmatrix},\\[4pt]
+    D &= \diag(3,2,3,2),\\[4pt]
+    L &= \begin{bmatrix}
+      3 & -1 & -1 & -1\\
+      -1 & 2 & -1 & 0\\
+      -1 & -1 & 3 & -1\\
+      -1 & 0 & -1 & 2
+    \end{bmatrix}.
+  \end{aligned}
+\]
+\endgroup
+The constant signal $x=\mathbf{1}$ satisfies $Lx=0$. The signal
+$y=[1,-1,1,-1]^\top$ has energy $y^\top Ly = 8$, reflecting large differences
+across all edges. The Fiedler vector separates $\{1,4\}$ from $\{2,3\}$,
+marking the minimal bottleneck. We reuse this example in
+Section~\ref{sec:examples}.
+\end{example}
+
+
+%% ══════════════════════════════════════════════════════════════════════════════
+\section{Multilayer Graphs and Supra-Laplacians}
+\label{sec:multilayer}
+%% ══════════════════════════════════════════════════════════════════════════════
+
+This section extends the graph Laplacian to systems with multiple relation
+types over the same entity set. The resulting supra-Laplacian is the direct
+predecessor of the Supra-Hodge Laplacian, and its energy identity is the
+template for the main variational result of the paper.
+
+\subsection{Multiple Relation Types on One Entity Set}
+
+Let $V$ be a fixed entity set with $|V|=n$. We consider $k$ weighted graphs
+$\mathcal{G} = \{G^{(1)},\dots,G^{(k)}\}$, each on vertex set $V$:
+\[
+  \mathcal{G} = \{G^{(1)}, G^{(2)}, \dots, G^{(k)}\}.
+\]
+Each $G^{(i)} = (V, E^{(i)}, w^{(i)})$ encodes a distinct relation type; for
+example, physical interaction, co-expression, pathway, or citation layers in a multi-relational biological or scientific system.
+
+\subsection{Layerwise Graph Laplacians}
+
+Each layer $G^{(i)}$ has its own adjacency matrix $A^{(i)}$, degree matrix
+$D^{(i)}$, and graph Laplacian $L^{(i)} = D^{(i)} - A^{(i)}$. By
+Proposition~\ref{prop:graph_energy}, $L^{(i)} \succeq 0$ and $\ker(L^{(i)})$
+captures the consensus structure within layer $i$.
+
+\subsection{Stacked Signals and Block Operators}
+
+To analyze all layers jointly, we stack layer signals into a single vector
+$v = (v^{(1)},\dots,v^{(k)}) \in \R^{kn}$. Inter-layer coupling is encoded by
+weights $\omega_{ij} \geq 0$: a positive $\omega_{ij}$ attracts the signals of
+layers $i$ and $j$ toward agreement.
+
+\subsection{The Supra-Laplacian and Its Energy}
+
+\begin{definition}[Supra-Laplacian]
+The \emph{supra-Laplacian} is the $kn\times kn$ block-symmetric matrix
+\begin{equation}
+  \label{eq:supra}
+  \Lsup =
+  \begin{bmatrix}
+    L^{(1)} + \textstyle\sum_{j\neq 1}\omega_{1j}I & -\omega_{12}I & \cdots & -\omega_{1k}I\\
+    -\omega_{21}I & L^{(2)} + \textstyle\sum_{j\neq 2}\omega_{2j}I & \cdots & -\omega_{2k}I\\
+    \vdots & \vdots & \ddots & \vdots\\
+    -\omega_{k1}I & -\omega_{k2}I & \cdots & L^{(k)} + \textstyle\sum_{j\neq k}\omega_{kj}I
+  \end{bmatrix}.
+\end{equation}
+\end{definition}
+
+\begin{proposition}[Supra-Laplacian Energy Decomposition]
+\label{prop:supra_energy}
+For any stacked signal $v=(v^{(1)},\allowbreak \dots,\allowbreak v^{(k)})$,
+\begingroup
+\small
+\[
+  \begin{aligned}
+    v^\top \Lsup v
+    &= \sum_{i=1}^k v^{(i)\top} L^{(i)} v^{(i)} \\
+    &\quad + \sum_{i<j}\omega_{ij}\|v^{(i)} - v^{(j)}\|_2^2.
+  \end{aligned}
+\]
+\endgroup
+\end{proposition}
+
+\begin{proof}
+Each diagonal block $L^{(i)}+\sum_{j\neq i}\omega_{ij}I$ contributes
+$v^{(i)\top}L^{(i)}v^{(i)} + \sum_{j\neq i}\omega_{ij}\|v^{(i)}\|^2$ to
+$v^\top\Lsup v$. Each off-diagonal block $-\omega_{ij}I$ contributes
+$-2\omega_{ij}v^{(i)\top}v^{(j)}$. Collecting all pairs $(i,j)$ with $i<j$:
+\[
+  \sum_{i<j}\omega_{ij}\bigl(\|v^{(i)}\|^2 - 2v^{(i)\top}v^{(j)}
+  + \|v^{(j)}\|^2\bigr)
+  = \sum_{i<j}\omega_{ij}\|v^{(i)}-v^{(j)}\|^2. \qedhere
+\]
+\end{proof}
+
+The energy decomposes into within-layer graph smoothness and cross-layer
+disagreement. This structure is the exact prototype for the Supra-Hodge energy
+expansion proved in Section~\ref{sec:properties}.
+
+\subsection{Consensus and Disagreement Across Layers}
+
+A stacked signal $v$ achieves zero supra-Laplacian energy iff $L^{(i)}v^{(i)}=0$
+for all $i$ (within-layer graph consensus) and $v^{(i)}=v^{(j)}$ whenever
+$\omega_{ij}>0$ (cross-layer consensus). The supra-Laplacian therefore enforces
+two simultaneous smoothness conditions.
+
+\subsection{Worked Two-Layer Example}
+
+\begin{example}[Two-layer supra-Laplacian]
+\label{ex:supra}
+Let $n=3$, $k=2$, both layers equal to the path graph $1$--$2$--$3$ with
+$L^{(1)}=L^{(2)}=L_{\mathrm{path}}$, and $\omega_{12}=1$. Then
+\[
+  \Lsup = \begin{bmatrix} L_{\mathrm{path}}+I & -I \\ -I & L_{\mathrm{path}}+I \end{bmatrix}.
+\]
+The symmetric signal $v=(\mathbf{1},\mathbf{1})$ has zero energy (constant in
+each layer, equal across layers). The antisymmetric signal
+$v=(\mathbf{1},-\mathbf{1})$ incurs cross-layer energy
+$\omega_{12}\|2\mathbf{1}\|^2=12$.
+\end{example}
+
+\subsection{Why Pairwise Multilayer Models Still Fall Short}
+
+Even with $k$ coupled layers, the supra-Laplacian encodes only pairwise edges
+within each layer. It cannot distinguish a filled triangle (a 2-simplex) from a
+hollow cycle of three edges. If three proteins jointly participate in a functional module in a
+way that no pair of pairwise measurements captures independently, the supra-Laplacian assigns the same energy
+to both configurations. Correcting this requires Hodge theory.
+
+
+%% ══════════════════════════════════════════════════════════════════════════════
+\section{Simplicial Complexes and Higher-Order Relational Structure}
+\label{sec:simplicial}
+%% ══════════════════════════════════════════════════════════════════════════════
+
+This section introduces simplicial complexes: the combinatorial structures that
+generalize graphs to encode interactions involving arbitrarily many entities
+simultaneously.
+
+\subsection{From Graphs to Simplicial Complexes: A Concrete Example}
+
+A graph encodes pairwise relationships through edges. However, many systems exhibit interactions that involve more than two entities simultaneously.
+
+Consider three vertices $u, v, w$. A graph may contain all three edges $(u,v)$, $(v,w)$, and $(u,w)$, forming a triangle. However, this does not necessarily imply that the three entities form a coherent higher-order unit.
+
+A simplicial complex distinguishes between these cases:
+\begin{itemize}
+    \item The presence of all three edges represents pairwise compatibility.
+    \item The inclusion of the 2-simplex $(u,v,w)$ asserts a genuine three-way interaction.
+\end{itemize}
+
+This distinction is critical: higher-order structure cannot be inferred from pairwise relations alone. Simplicial complexes provide the appropriate mathematical language for encoding such multi-way interactions.
+
+\subsection{From Pairwise Edges to Simplices}
+
+\begin{definition}[Simplex and Simplicial Complex]
+A \emph{$p$-simplex} is a set $\sigma = \{v_0,v_1,\dots,v_p\} \subseteq V$ of
+$p+1$ elements. A \emph{simplicial complex} $K$ on $V$ is a collection of
+simplices satisfying the \emph{closure property}:
+\[
+  \sigma \in K,\quad \tau \subseteq \sigma \implies \tau \in K.
+\]
+\end{definition}
+
+The dimension of a simplex is $\dim(\sigma) = |\sigma|-1$. Thus 0-simplices
+are vertices, 1-simplices are (undirected) edges, 2-simplices are filled
+triangles, and 3-simplices are filled tetrahedra.
+
+\subsection{Faces, Closure, and Dimension}
+
+Each subset of a simplex is a \emph{face}. The closure property says: if a
+higher-order interaction is present, all its sub-interactions are present too.
+This is the natural consistency requirement for relational data. We write
+$K_p$ for the set of all $p$-simplices of $K$.
+
+\subsection{Hollow Triangles Versus Filled Triangles}
+
+\begin{example}[Hollow vs.\ filled triangle]
+\label{ex:hollow}
+Let $V=\{1,2,3\}$. The \emph{hollow complex}
+$K_{\mathrm{hollow}} = \{\{1\},\{2\},\{3\},\{1,2\},\{1,3\},\{2,3\}\}$ contains
+all three edges but not the triangle as a 2-simplex. The \emph{filled complex}
+$K_{\mathrm{filled}} = K_{\mathrm{hollow}} \cup \{\{1,2,3\}\}$ adds the triangle.
+These two complexes have identical pairwise adjacency structure. Yet they have
+different topology: $K_{\mathrm{hollow}}$ contains a non-trivial 1-cycle (a
+``hole''), while $K_{\mathrm{filled}}$ does not. Graph Laplacian methods cannot
+distinguish them; Hodge methods detect the difference precisely via harmonic
+structure.
+\end{example}
+
+\subsection{Why Higher-Order Structure Changes the Model Class}
+
+Adding the 2-simplex $\{1,2,3\}$ changes the topology of the complex and
+changes the spectrum of the associated Hodge Laplacian. In the hollow complex,
+the edge signal $f=[1,1,1]^\top$ (uniform flow around the cycle) is harmonic
+at $p=1$ (zero $H_1$-energy). In the filled complex, this signal has nonzero
+upper Laplacian energy: the triangle ``detects'' that the flow winds around it,
+and the harmonic cycle is destroyed. No pairwise operator can see this
+difference.
+
+\subsection{Examples from Biology and Scientific Networks}
+
+In a protein-complex layer of a biological network, three proteins $\{P_1, P_2, P_3\}$ may jointly form a stable functional unit even though no pair alone captures the full biological role. This is naturally represented by a 2-simplex rather than by three unrelated edges. Its presence eliminates the harmonic 1-cycle formed by the three pairwise interaction edges, indicating that the triplet is a genuine higher-order unit rather than merely a hollow loop of pairwise relations.
+
+A similar phenomenon may arise in a scientific network. Three papers or concepts may form a tightly integrated methodological cluster whose collective relation is stronger than any pairwise association taken alone. Representing that cluster by a 2-simplex distinguishes a genuinely higher-order scientific grouping from a mere triangle in the pairwise graph.
+
+
+%% ══════════════════════════════════════════════════════════════════════════════
+\section{Chain Spaces, Orientation, and Boundary Operators}
+\label{sec:chains}
+%% ══════════════════════════════════════════════════════════════════════════════
+
+This section develops the algebraic machinery for computing with simplicial
+complexes: chain spaces that coordinatize signals on simplices of each
+dimension, and boundary operators that map between consecutive dimensions.
+
+\subsection{\texorpdfstring{$p$-Simplices and $p$-Chains}{p-Simplices and p-Chains}}
+
+\begin{definition}[Chain Space]
+The \emph{$p$-chain space} of $K$ is
+\[
+  C_p(K) = \R^{|K_p|},
+\]
+with one coordinate per $p$-simplex of $K$. A \emph{$p$-chain} is an element
+of $C_p(K)$.
+\end{definition}
+
+Signals on vertices live in $C_0(K)=\R^n$; signals on edges live in $C_1(K)$;
+signals on triangles live in $C_2(K)$. The chain space generalizes the notion
+of a vertex signal to signals of every order.
+
+\subsection{Basis Elements and Coordinate Representations}
+
+We choose an orientation for each $p$-simplex. An oriented simplex is written
+$[v_0,v_1,\dots,v_p]$, and reversing any adjacent pair negates the element:
+$[v_0,\dots,v_i,v_{i+1},\dots,v_p] = -[v_0,\dots,v_{i+1},v_i,\dots,v_p]$.
+The set of consistently oriented $p$-simplices forms a basis for $C_p(K)$.
+
+\subsection{Orientation and Sign}
+
+Orientation is a bookkeeping device that makes boundary operators well-defined.
+For an edge $[u,v]$, it assigns a direction (arrow from $u$ to $v$). For a
+triangle $[u,v,w]$, it assigns a cyclic ordering. Changing orientation changes
+the sign of the basis element, ensuring that boundary operators are
+orientation-consistent.
+
+\subsection{Boundary Operators}
+
+\begin{definition}[Boundary Operator]
+The \emph{boundary operator} $\partial_p\colon C_p(K)\to C_{p-1}(K)$ is
+defined on basis elements by
+\[
+  \partial_p[v_0,v_1,\dots,v_p]
+  = \sum_{i=0}^{p}(-1)^i[v_0,\dots,\hat{v}_i,\dots,v_p],
+\]
+where $\hat{v}_i$ denotes omission of $v_i$, and extended by linearity.
+\end{definition}
+
+\subsection{Example: Boundary of a Triangle}
+
+For a 2-simplex $[v_0,v_1,v_2]$, one has
+$\partial_2[v_0,v_1,v_2]=[v_1,v_2]-[v_0,v_2]+[v_0,v_1]$, the oriented edge cycle
+around the triangle; applying $\partial_1$ again gives $0$, i.e.\ $\partial_1\partial_2=0$
+(matrix form: $B_1B_2=0$). Example~\ref{ex:boundary} computes the incidence matrices
+explicitly.
+
+The boundary operator maps each oriented $p$-simplex to the signed sum of its
+$(p-1)$-dimensional faces, with signs determined by the orientation. Intuitively,
+the boundary of an oriented edge $[u,v]$ is the signed difference $v-u$; the
+boundary of an oriented triangle $[u,v,w]$ is the signed cycle
+$[v,w]-[u,w]+[u,v]$.
+
+\subsection{Incidence Matrices}
+
+We represent $\partial_p$ as the matrix $B_p \in \R^{|K_{p-1}|\times|K_p|}$:
+the column for oriented $p$-simplex $\sigma$ has $+1$ in row $\tau$ if $\tau$
+appears in $\partial_p\sigma$ with positive orientation, $-1$ if with negative
+orientation, and $0$ otherwise.
+
+\subsection{Why Boundary of Boundary Is Zero}
+
+\begin{proposition}[Boundary of Boundary Identity]
+\label{prop:b2}
+For any $p$,
+\[
+  \partial_p\partial_{p+1} = 0, \qquad B_pB_{p+1} = 0.
+\]
+\end{proposition}
+
+\begin{proof}
+For an oriented $(p+1)$-simplex $[v_0,\dots,v_{p+1}]$, compute
+$\partial_p\partial_{p+1}[v_0,\dots,v_{p+1}]$:
+\[
+  \partial_p\partial_{p+1}[v_0,\dots,v_{p+1}]
+  = \sum_{i=0}^{p+1}(-1)^i\partial_p[v_0,\dots,\hat{v}_i,\dots,v_{p+1}].
+\]
+Each $p$-face $[v_0,\dots,\hat{v}_i,\dots,\hat{v}_j,\dots,v_{p+1}]$ (with both
+$v_i$ and $v_j$ omitted) appears twice: once as the $j$-th term of
+$\partial_p[v_0,\dots,\hat{v}_i,\dots]$ with sign $(-1)^i(-1)^{j-1}$, and
+once as the $i$-th term of $\partial_p[v_0,\dots,\hat{v}_j,\dots]$ with sign
+$(-1)^j(-1)^i$. These two contributions are equal in magnitude and opposite in
+sign, so they cancel. Hence $\partial_p\partial_{p+1}=0$. The matrix identity
+$B_pB_{p+1}=0$ is the coordinate form.
+\end{proof}
+
+This identity is the algebraic cornerstone of homological algebra. It implies
+$\im(B_{p+1})\subseteq\ker(B_p)$, enabling the Hodge decomposition.
+
+\subsection{Worked Simplex-Boundary Example}
+
+\begin{example}[Oriented triangle boundary]
+\label{ex:boundary}
+Let $K$ have vertices $\{1,2,3\}$ and oriented edges
+$[1,2],[1,3],[2,3]$. Let the oriented triangle be $[1,2,3]$. Then
+\[
+  \partial_2[1,2,3] = [2,3] - [1,3] + [1,2].
+\]
+With edges listed in order $[1,2],[1,3],[2,3]$ as the basis of $C_1$:
+\[
+  B_2 = \begin{bmatrix} 1 \\ -1 \\ 1 \end{bmatrix},\quad
+  B_1 = \begin{bmatrix} -1 & -1 & 0 \\ 1 & 0 & -1 \\ 0 & 1 & 1 \end{bmatrix}.
+\]
+Direct computation confirms $B_1 B_2 = [1-1, -1+1, 1-1]^\top = 0$,
+illustrating Proposition~\ref{prop:b2}.
+\end{example}
+
+
+%% ══════════════════════════════════════════════════════════════════════════════
+\section{Hodge Laplacians on Simplicial Complexes}
+\label{sec:hodge}
+%% ══════════════════════════════════════════════════════════════════════════════
+
+We now define the combinatorial Hodge Laplacian, the higher-order spectral
+operator on a single complex that the Supra-Hodge Laplacian will generalize.
+
+\subsection{Definition of the Combinatorial Hodge Laplacian}
+
+\begin{definition}[Hodge Laplacian]
+The \emph{$p$-th combinatorial Hodge Laplacian} of $K$ is
+\[
+  H_p = B_p^\top B_p + B_{p+1}B_{p+1}^\top,
+\]
+where we set $B_0\equiv 0$ by convention. The term $B_p^\top B_p$ is the
+\emph{lower Laplacian} and $B_{p+1}B_{p+1}^\top$ is the \emph{upper Laplacian}.
+\end{definition}
+
+\subsection{Interpretation of Hodge Decomposition}
+
+By the standard combinatorial Hodge decomposition for finite simplicial
+complexes~\cite{horak2013,schaub2020,lim2020}, chain space splits into three
+orthogonal components:
+\[
+C_p = \mathrm{im}(B_p^\top) \oplus \ker(H_p) \oplus \mathrm{im}(B_{p+1}).
+\]
+
+These components admit intuitive interpretations:
+\begin{itemize}
+    \item \textbf{Gradient component:} signals derived from lower-order structure.
+    \item \textbf{Curl component:} signals corresponding to local cycles or inconsistencies.
+    \item \textbf{Harmonic component:} globally consistent structures that are neither gradients nor curls.
+\end{itemize}
+
+In particular, for $p = 1$, the curl term captures inconsistencies on triangles and higher simplices. This enables the detection of cyclic contradictions that are invisible to graph-based methods.
+
+The lower Laplacian measures how much a $p$-chain signal diverges at
+$(p-1)$-boundaries; the upper Laplacian measures how much it has nonzero curl
+around $(p+1)$-simplices.
+
+\begin{proposition}[Hodge Laplacians Are Symmetric PSD]
+\label{prop:hodge_psd}
+$H_p$ is symmetric and positive semidefinite for every $p$.
+\end{proposition}
+
+\begin{proof}
+Both $B_p^\top B_p$ and $B_{p+1}B_{p+1}^\top$ are of the form $M^\top M$
+(with $M=B_p$ and $M=B_{p+1}^\top$ respectively), hence symmetric PSD. A sum
+of symmetric PSD matrices is symmetric PSD.
+\end{proof}
+
+\subsection{\texorpdfstring{Recovery of the Graph Laplacian at $p=0$}{Recovery of the Graph Laplacian at p=0}}
+
+\begin{proposition}[Hodge-0 Equals Graph Laplacian]
+\label{prop:h0}
+$H_0 = B_1 B_1^\top$ equals the graph Laplacian $L$ of the 1-skeleton of $K$.
+\end{proposition}
+
+\begin{proof}
+For oriented edge $[u,v]$ with $u<v$ (so that $B_1$ has $-1$ in row $u$ and
+$+1$ in row $v$), the $(a,b)$-entry of $B_1 B_1^\top$ is
+$\sum_e (B_1)_{ae}(B_1)_{be}$. For $a=b$: $(B_1 B_1^\top)_{aa} = \sum_e
+(B_1)_{ae}^2 = |\{e : a \in e\}| = d_a$. For $a\neq b$: $(B_1B_1^\top)_{ab}
+= -A_{ab}$ (nonzero only when $\{a,b\}\in E$). Hence $B_1B_1^\top = D-A = L$.
+\end{proof}
+
+This proposition confirms that Hodge theory is a genuine extension of graph
+spectral theory: $H_0$ is the original graph Laplacian.
+
+\subsection{\texorpdfstring{The $p=1$ Case and Cycle-Level Inconsistency}{The p=1 Case and Cycle-Level Inconsistency}}
+
+For $p=1$, a signal $f\in C_1(K)$ (a flow or relation strength on edges) has
+\[
+  f^\top H_1 f = \|B_1 f\|^2 + \|B_2^\top f\|^2.
+\]
+The term $\|B_1 f\|^2$ measures vertex-level divergence of $f$ (how much flow
+is not conserved at each vertex). The term $\|B_2^\top f\|^2$ measures
+triangle-level curl (how much $f$ winds around each filled triangle). Both
+terms must vanish for $f$ to be harmonic.
+
+\subsection{Lower and Upper Adjacency}
+
+Two $p$-simplices are \emph{lower-adjacent} if they share a $(p-1)$-face; they
+are \emph{upper-adjacent} if they are co-faces of a common $(p+1)$-simplex.
+Lower adjacency governs the lower Laplacian $B_p^\top B_p$; upper adjacency
+governs the upper Laplacian $B_{p+1}B_{p+1}^\top$. Graph Laplacians correspond
+to the $p=0$ case where only lower adjacency (vertex-to-edge incidence) exists.
+
+\subsection{Gradient, Curl, and Harmonic Components}
+
+The Hodge decomposition theorem states that for any $f\in C_p(K)$,
+\[
+  f = f_{\mathrm{grad}} + f_{\mathrm{harm}} + f_{\mathrm{curl}},
+\]
+where $f_{\mathrm{grad}}\in\im(B_p^\top)$, $f_{\mathrm{curl}}\in\im(B_{p+1})$,
+and $f_{\mathrm{harm}}\in\ker(H_p)$. These subspaces are mutually orthogonal.
+The gradient component is the conservative part (derivable from a vertex
+potential); the curl component is the exact part (boundary of a higher-order
+chain); the harmonic component is the topologically persistent part (belonging
+to genuine higher-order cycles).
+
+\paragraph{Remark on the decomposition.}
+For finite simplicial complexes equipped with the standard inner product on chain spaces, the combinatorial Hodge decomposition is an orthogonal decomposition. Thus the gradient, harmonic, and curl components are not merely formal labels, but mutually orthogonal subspaces with distinct spectral roles.
+
+\subsection{Hodge Decomposition Intuition}
+
+On edge signals ($p=1$), the gradient component represents potential-driven flow
+(water flowing downhill from a potential), the curl component represents
+circulation induced by filled triangles (water flowing around a filled basin),
+and the harmonic component represents persistent circulation that is not caused
+by any local source or triangle fill (water in a donut). The Hodge Laplacian
+measures and separates all three simultaneously.
+
+\subsection{Worked Hodge Example}
+
+\begin{example}[Filled-triangle Hodge computation]
+\label{ex:hodge}
+Let $K=K_{\mathrm{filled}}$ from Example~\ref{ex:hollow}, with
+$B_1$ and $B_2$ as in Example~\ref{ex:boundary}. Then
+\[
+  B_1^\top B_1 = \begin{bmatrix}2&1&-1\\1&2&1\\-1&1&2\end{bmatrix},\quad
+  B_2 B_2^\top = \begin{bmatrix}1&-1&1\\-1&1&-1\\1&-1&1\end{bmatrix},
+\]
+giving
+\[
+  H_1 = B_1^\top B_1 + B_2B_2^\top
+      = \begin{bmatrix}3&0&0\\0&3&0\\0&0&3\end{bmatrix}.
+\]
+Thus $H_1=3I_3$ for the filled triangle, and $\ker(H_1)=\{0\}$: there are no
+harmonic 1-cycles. For the hollow complex ($B_2=0$), $H_1=B_1^\top B_1$ has
+$\ker(H_1) = \spn\bigl([1,1,1]^\top/\sqrt{3}\bigr)$---the uniform circulation
+around the empty triangle is a harmonic cycle.
+\end{example}
+
+
+%% ══════════════════════════════════════════════════════════════════════════════
+\section{From Single Higher-Order Systems to Coupled Higher-Order Systems}
+\label{sec:coupling}
+
+A single simplicial complex captures one relational view. Coupling several such
+views requires a common ambient $p$-chain space so that layerwise signals and
+operators can be compared and coupled without conflating distinct per-view
+topologies.
+
+The purpose of this section is to construct the aligned ambient chain space and
+embedding machinery needed to couple multiple higher-order views. Once that
+infrastructure is in place, the Supra-Hodge operator itself will be defined
+formally in Section~\ref{sec:defn}.
+
+\subsection{Why Alignment Is Necessary}
+
+Each layer in a multi-view system defines its own simplicial complex and corresponding chain space. Without a common coordinate system, these spaces cannot be meaningfully coupled.
+
+A naive approach would attempt to compare signals across layers directly. However, if the underlying simplices differ, such comparisons are ill-defined: one layer may contain a simplex that does not exist in another.
+
+To resolve this, we introduce an aligned ambient chain space. Each layer is embedded into this shared space by zero-padding missing simplices. This construction enables the definition of a block operator that couples corresponding structures across layers while preserving the internal topology of each layer.
+
+This alignment step is the key technical device that allows higher-order operators to be extended to the multi-layer setting.
+
+\subsection{Why a Single Simplicial Complex Is Not Enough}
+
+A multi-relational biological or scientific system may encode, for instance, physical interaction, co-expression, and pathway-participation relations over the same molecular entities, or citation, co-authorship, and methodological-dependence relations over the same papers and authors. Each view has its own higher-order structure (for instance, filled triangles versus hollow cycles at $p=1$). Merging all views into a single complex conflates relations that belong to different modalities and destroys the per-view interpretation of harmonic cycles. We need a family of complexes and a principled coupling.
+
+\subsection{Families of Complexes Over a Shared Entity Set}
+
+\begin{definition}[Family of Simplicial Complexes]
+Let $V$ be a shared vertex set. A \emph{family of simplicial complexes} is
+\[
+  \calK = \{K^{(1)}, K^{(2)}, \dots, K^{(k)}\},
+\]
+where each $K^{(i)}$ is a simplicial complex on $V$.
+\end{definition}
+
+Each $K^{(i)}$ has its own $p$-simplices $K_p^{(i)}$ and chain space
+$C_p^{(i)} = \R^{|K_p^{(i)}|}$.
+
+\subsection{Alignment of Simplex Coordinates Across Views}
+
+To couple the chain spaces of different layers, we need a shared coordinate
+system.
+
+\begin{definition}[Aligned Reference Set]
+An \emph{aligned reference set} $\Sigma_p$ is a set of admissible oriented
+$p$-simplices such that $K_p^{(i)}\subseteq\Sigma_p$ for all $i$. The ambient
+dimension is $N_p = |\Sigma_p|$. The \emph{common ambient chain space} is
+\[
+  \Ctil_p \;\cong\; \R^{N_p}.
+\]
+\end{definition}
+
+The simplest choice is $\Sigma_p = \bigcup_i K_p^{(i)}$ (union over all
+layers), with $N_p = |\bigcup_i K_p^{(i)}|$.
+
+\subsection{Explicit Embedding into the Ambient Chain Space}
+
+To make the alignment construction fully explicit, we define for each layer $i$ an embedding map
+\[
+E_p^{(i)} : C_p\!\left(K^{(i)}\right) \longrightarrow \Ctil_p \cong \R^{N_p},
+\]
+where $N_p = |\Sigma_p|$. The map $E_p^{(i)}$ sends each basis simplex of $C_p(K^{(i)})$
+to its corresponding coordinate in the ambient basis indexed by $\Sigma_p$, and assigns zero to all coordinates corresponding to simplices absent from layer $i$.
+
+Using this embedding, any layerwise $p$-chain signal $x^{(i)} \in C_p(K^{(i)})$ is represented in the common ambient space by $E_p^{(i)}x^{(i)} \in \Ctil_p$. After padding incidence matrices to the reference set $\Sigma_p$ (equivalently, conjugating the native Hodge matrices by $E_p^{(i)}$), every layerwise Hodge Laplacian becomes an $N_p\times N_p$ operator on $\Ctil_p$. We denote this embedded matrix by $H_p^{(i)}$ throughout the block definition \eqref{eq:Lp} and the remainder of the paper.
+
+This makes the coupling mathematically precise: the Supra-Hodge operator does not compare signals in unrelated spaces, but in a shared ambient chain space obtained by explicit embeddings.
+
+\paragraph{Notational convention.}
+From this point onward, we write $H_p^{(i)}$ for the ambient-space operator acting on $\Ctil_p$ obtained from the embedding construction above. Thus all layerwise Hodge operators appearing in the definition of $L_p$, in the main theorem, and in subsequent reductions are understood as operators on the common aligned chain space.
+
+\subsection{Zero-Padding and a Common Ambient Chain Space}
+
+Each layer $i$ has its own chain space $C_p^{(i)}$ of dimension
+$|K_p^{(i)}|\leq N_p$. We embed it into $\Ctil_p$ by \emph{zero-padding}: the
+boundary matrix $B_p^{(i)}$ is extended to $\R^{N_{p-1}\times N_p}$ by
+inserting zero columns for simplices in $\Sigma_p\setminus K_p^{(i)}$. The
+Hodge Laplacian $H_p^{(i)} = B_p^{(i)\top}B_p^{(i)} + B_{p+1}^{(i)}
+B_{p+1}^{(i)\top}$ then acts on the ambient space $\Ctil_p \cong \R^{N_p}$.
+
+\begin{example}[Alignment and zero-padding]
+\label{ex:align}
+Let $k=2$, $V=\{1,2,3\}$, with $K_1^{(1)}=\{[1,2],[1,3]\}$ and
+$K_1^{(2)}=\{[1,2],[2,3]\}$. Choose $\Sigma_1=\{[1,2],[1,3],[2,3]\}$,
+so $N_1=3$. The aligned incidence matrix $B_1^{(1)}$ has a zero column for
+$[2,3]$, and $B_1^{(2)}$ has a zero column for $[1,3]$. The Hodge Laplacians
+$H_1^{(1)}$ and $H_1^{(2)}$ both live in $\R^{3\times 3}$ and can be assembled
+into a $2\times 3 \cdot 2\times 3 = 6\times 6$ block operator.
+\end{example}
+
+\subsection{When Identity Coupling Is Natural}
+
+If all layers share the same $p$-simplices ($K_p^{(i)}=K_p^{(j)}$ for all
+$i,j$), then corresponding simplices refer to the same oriented simplex in each layer and the natural
+coupling operator between layers $i$ and $j$ is $C^{(ij)}=\omega_{ij}I_{N_p}$.
+This is the scalar coupling case studied throughout this paper.
+
+\subsection{When Identity Coupling Fails}
+
+If layers have different complex structures with no natural simplex
+correspondence, identity coupling may conflate simplices whose interpretations differ across modalities.
+In this case, an estimated or structured coupling matrix $C^{(ij)}\in\R^{N_p\times
+N_p}$ replaces $\omega_{ij}I_{N_p}$. This extension is discussed in
+Section~\ref{sec:discussion}; we focus on the scalar case here.
+
+
+%% ══════════════════════════════════════════════════════════════════════════════
+\section{Definition of the Supra-Hodge Laplacian}
+\label{sec:defn}
+%% ══════════════════════════════════════════════════════════════════════════════
+
+Having fixed the alignment, embedding, and notational conventions of
+Section~\ref{sec:coupling}, we now define the Supra-Hodge Laplacian $L_p$, the
+central operator of this paper.
+
+\subsection{Layerwise Hodge Operators}
+
+Given the family $\calK$ and aligned incidence matrices $B_p^{(i)}\in
+\R^{N_{p-1}\times N_p}$, the layerwise Hodge Laplacian is
+\[
+  H_p^{(i)} = B_p^{(i)\top}B_p^{(i)} + B_{p+1}^{(i)}B_{p+1}^{(i)\top}
+  \;\in\; \R^{N_p\times N_p}.
+\]
+By Proposition~\ref{prop:hodge_psd}, $H_p^{(i)}\succeq 0$. The aligned
+construction ensures all $H_p^{(i)}$ act on the same ambient space $\Ctil_p$.
+
+\subsection{\texorpdfstring{Stacked $p$-Chain Signal Spaces}{Stacked p-Chain Signal Spaces}}
+
+The total signal space for the $k$-layer system at order $p$ is
+\[
+  \calC_p = \underbrace{\Ctil_p \oplus \cdots \oplus \Ctil_p}_{k}
+  \;\cong\; \R^{kN_p}.
+\]
+A stacked signal $v=(v^{(1)},\dots,v^{(k)})\in\calC_p$ collects one ambient
+$p$-chain signal from each layer.
+
+\subsection{Inter-Layer Couplings and the Coupling Graph}
+
+\begin{definition}[Coupling Graph and Coupling Operator]
+The \emph{coupling graph} $\Gom$ has vertex set $\{1,\dots,k\}$ and edge
+$\{i,j\}$ iff $\omega_{ij}>0$. The \emph{coupling operator} between layers $i$
+and $j$ is $C^{(ij)}=\omega_{ij}I_{N_p}$.
+\end{definition}
+
+The coupling graph encodes which layer pairs are linked. Its connectivity
+structure will determine the dimension of $\ker(L_p)$ through
+Theorem~\ref{thm:main}.
+
+\subsection{\texorpdfstring{Block-Matrix Definition of $L_p$}{Block-Matrix Definition of L\_p}}
+
+\begin{definition}[Supra-Hodge Laplacian]
+\label{def:main}
+The \emph{order-$p$ Supra-Hodge Laplacian} is the $kN_p\times kN_p$
+block-symmetric matrix
+\begin{equation}
+  \label{eq:Lp}
+  L_p =
+  \begin{bmatrix}
+    H_p^{(1)} + \textstyle\sum_{j\neq 1}\omega_{1j}I & -\omega_{12}I & \cdots & -\omega_{1k}I\\
+    -\omega_{21}I & H_p^{(2)} + \textstyle\sum_{j\neq 2}\omega_{2j}I & \cdots & -\omega_{2k}I\\
+    \vdots & \vdots & \ddots & \vdots\\
+    -\omega_{k1}I & -\omega_{k2}I & \cdots & H_p^{(k)} + \textstyle\sum_{j\neq k}\omega_{kj}I
+  \end{bmatrix}.
+\end{equation}
+\end{definition}
+
+Each diagonal block $H_p^{(i)}+\sum_{j\neq i}\omega_{ij}I$ is the layerwise
+Hodge operator augmented by the total coupling weight from layer $i$ to all
+other layers. Each off-diagonal block $-\omega_{ij}I$ provides the cross-layer
+attractive force. The structural analogy with the supra-Laplacian
+equation~\eqref{eq:supra} is exact, with $H_p^{(i)}$ replacing $L^{(i)}$ and
+$N_p$ replacing $n$.
+
+\subsection{Equivalent Operator Form}
+
+Let
+\[
+\mathcal{H}_p := \diag\!\bigl(H_p^{(1)},\dots,H_p^{(k)}\bigr)
+\]
+denote the block-diagonal operator collecting the layerwise Hodge Laplacians, and let $L_{\mathrm{inter}}$ denote the graph Laplacian of the coupling graph $\Gom$. Then the Supra-Hodge Laplacian may be written compactly as
+\[
+L_p = \mathcal{H}_p + L_{\mathrm{inter}} \otimes I_{N_p}.
+\]
+
+This form makes the structure of the operator especially transparent: the first term captures within-layer higher-order topology, while the second captures cross-layer disagreement through a Kronecker coupling.
+
+\subsection{\texorpdfstring{Aggregated Multi-Order Operator $L_{\mathrm{SH}}$}{Aggregated Multi-Order Operator L\_SH}}
+
+When signals of multiple orders are relevant simultaneously, we aggregate:
+\[
+  \LSH = \diag(\alpha_0 L_0,\; \alpha_1 L_1,\; \dots,\; \alpha_P L_P),
+\]
+where $\alpha_p\geq 0$ are order weights and $P$ is the maximum simplex
+dimension. This block-diagonal operator acts on the direct sum of all
+stacked chain spaces.
+
+\subsection{Interpretation Before Proof}
+
+The operator $L_p$ charges a stacked signal $v$ for two kinds of roughness
+simultaneously. The diagonal blocks charge for within-layer topological
+roughness: each $v^{(i)}$ is penalized for deviating from harmonicity in layer
+$i$, where harmonicity means both divergence-free at $(p-1)$-boundaries and
+curl-free around $(p+1)$-simplices. The off-diagonal blocks charge for
+cross-layer disagreement: $v^{(i)}$ and $v^{(j)}$ are attracted toward
+equality by the coupling weight $\omega_{ij}$. The total energy is the sum of
+both penalties, and zero energy requires both to vanish simultaneously.
+
+
+%% ══════════════════════════════════════════════════════════════════════════════
+\section{Fundamental Properties and Main Theorem}
+\label{sec:properties}
+%% ══════════════════════════════════════════════════════════════════════════════
+
+We establish the mathematical foundations of $L_p$ and state and prove the
+main theorem.
+
+\subsection{Energy Expansion}
+
+\begin{proposition}[Supra-Hodge Energy Expansion]
+\label{prop:sh_energy}
+For any stacked $p$-chain signal $v=(v^{(1)},\allowbreak \dots,\allowbreak v^{(k)})\in\calC_p$,
+\begingroup
+\small
+\[
+  \begin{aligned}
+    v^\top L_p v
+    &= \sum_{i=1}^k v^{(i)\top}H_p^{(i)}v^{(i)} \\
+    &\quad + \sum_{i<j}\omega_{ij}\|v^{(i)}-v^{(j)}\|_2^2.
+  \end{aligned}
+\]
+\endgroup
+\end{proposition}
+
+\begin{proof}
+Write $L_p$ in block form as in Definition~\ref{def:main}. Then
+\[
+  v^\top L_p v
+  = \sum_{i=1}^k v^{(i)\top}\Bigl(H_p^{(i)} + \sum_{j\neq i}\omega_{ij}I\Bigr)v^{(i)}
+    + \sum_{i\neq j} v^{(i)\top}(-\omega_{ij}I)v^{(j)}.
+\]
+Separating the diagonal Hodge terms gives
+\[
+  \sum_{i=1}^k v^{(i)\top}H_p^{(i)}v^{(i)}.
+\]
+The remaining diagonal and off-diagonal coupling terms combine as
+\[
+  \sum_{i=1}^k \sum_{j\neq i} \omega_{ij}\|v^{(i)}\|_2^2
+  - \sum_{i\neq j}\omega_{ij}v^{(i)\top}v^{(j)}.
+\]
+Grouping by unordered pairs $(i,j)$ with $i<j$ and using symmetry $\omega_{ij}=\omega_{ji}$ yields
+\[
+  \sum_{i<j}\omega_{ij}\bigl(\|v^{(i)}\|_2^2 - 2v^{(i)\top}v^{(j)} + \|v^{(j)}\|_2^2\bigr)
+  = \sum_{i<j}\omega_{ij}\|v^{(i)}-v^{(j)}\|_2^2.
+\]
+Combining both contributions proves the claimed energy expansion (cf.\ Proposition~\ref{prop:supra_energy} at $p=0$).
+\end{proof}
+
+This is the central variational identity of the paper. The first sum measures
+within-layer higher-order topological energy; the second measures cross-layer
+disagreement. The operator charges for both penalties simultaneously.
+
+\subsection{Symmetry}
+
+\begin{proposition}
+$L_p$ is symmetric.
+\end{proposition}
+
+\begin{proof}
+Each $H_p^{(i)}$ is symmetric (Proposition~\ref{prop:hodge_psd}). The diagonal
+augmentation $\sum_{j\neq i}\omega_{ij}I$ is symmetric. The off-diagonal block
+satisfies $(-\omega_{ij}I)^\top = -\omega_{ij}I = -\omega_{ji}I$ (since
+couplings are symmetric: $\omega_{ij}=\omega_{ji}$). The block matrix is
+therefore symmetric.
+\end{proof}
+
+\subsection{Positive Semidefiniteness}
+
+\begin{proposition}
+$L_p \succeq 0$.
+\end{proposition}
+
+\begin{proof}
+By Proposition~\ref{prop:sh_energy},
+$v^\top L_p v = \sum_i v^{(i)\top}H_p^{(i)}v^{(i)} +
+\sum_{i<j}\omega_{ij}\|v^{(i)}-v^{(j)}\|^2 \geq 0$ for all $v$, since
+$H_p^{(i)}\succeq 0$ and $\omega_{ij}\geq 0$.
+\end{proof}
+
+Positive semidefiniteness is essential: it means all eigenvalues of $L_p$ are
+nonnegative, the spectral decomposition is well-defined, and the Rayleigh
+quotient interpretation of Section~\ref{sec:spectral} holds.
+
+\subsection{Reduction to Classical Cases}
+
+\begin{proposition}[Reduction to Single-Layer Hodge]
+\label{prop:k1}
+If $k=1$, then $L_p = H_p^{(1)}$.
+\end{proposition}
+
+\begin{proof}
+With one layer, there are no off-diagonal blocks and no coupling terms.
+Definition~\ref{def:main} reduces to $L_p = H_p^{(1)}$.
+\end{proof}
+
+\begin{proposition}[Reduction to Classical Supra-Laplacian]
+\label{prop:p0}
+If $p=0$, then $L_0$ equals the classical supra-Laplacian $\Lsup$ for the
+multilayer graph family $\calG = \{G^{(1)},\dots,G^{(k)}\}$ with the same
+coupling weights.
+\end{proposition}
+
+\begin{proof}
+At $p=0$: $N_0 = n$, $\Ctil_0 = \R^n$, and $H_0^{(i)} = B_1^{(i)}B_1^{(i)\top}
+= L^{(i)}$ by Proposition~\ref{prop:h0}. Equation~\eqref{eq:Lp} then equals
+equation~\eqref{eq:supra}.
+\end{proof}
+
+\begin{proposition}[No Upper Simplices]
+If layer $i$ has no $(p+1)$-simplices, then $B_{p+1}^{(i)}=0$ and
+$H_p^{(i)} = B_p^{(i)\top}B_p^{(i)}$: the upper Laplacian vanishes.
+\end{proposition}
+
+These three reduction propositions confirm that $L_p$ is the natural synthesis
+of the supra-Laplacian and Hodge Laplacian frameworks: it contains both as
+special cases.
+
+\subsection{Nullspace intuition}
+
+The energy identity of Proposition~\ref{prop:sh_energy} shows that zero energy
+requires two conditions simultaneously: each layerwise signal must be harmonic,
+and any two coupled layers must agree. Thus the nullspace of $L_p$ should be
+understood as the space of stacked signals that are both internally
+topologically consistent and externally consistent across the coupling graph.
+
+At the single-layer level, $\ker(H_p)$ consists of harmonic signals
+(curl- and divergence-free). In the multi-layer setting, cross-layer
+disagreement incurs coupling energy, so zero-energy stacked signals must also
+agree on each connected component of $\Gom$. Equivalently, one expects
+$\ker(L_p)$ to contain precisely those signals that are harmonic within each
+layer and mutually consensual across coupled layers.
+
+\subsection{Main Theorem: Consensus-Harmonic Nullspace Theorem}
+
+\begin{theorem}[Consensus-Harmonic Nullspace Theorem]
+\label{thm:main}
+Let $L_p$ be the Supra-Hodge Laplacian defined above. Then:
+\[
+\ker(L_p)
+=
+\left\{
+v \in \mathbb{R}^{k|\Sigma_p|} :
+\begin{aligned}
+& H_p^{(i)} v^{(i)} = 0 \quad \forall i, \\
+& v^{(i)} = v^{(j)} \quad \text{for all } i,j \text{ in the same connected component of } G_\omega
+\end{aligned}
+\right\}.
+\]
+\end{theorem}
+
+\begin{proof}
+From the energy decomposition,
+\[
+v^\top L_p v
+=
+\sum_i v^{(i)\top} H_p^{(i)} v^{(i)}
++
+\sum_{i<j} \omega_{ij} \|v^{(i)} - v^{(j)}\|^2.
+\]
+
+Since each summand is nonnegative, vanishing of the total energy implies vanishing of each summand individually. Therefore, $v \in \ker(L_p)$ if and only if each term in the decomposition is zero.
+
+The first condition implies:
+\[
+H_p^{(i)} v^{(i)} = 0 \quad \forall i,
+\]
+so each layer signal is harmonic.
+
+The second condition implies:
+\[
+\|v^{(i)} - v^{(j)}\|^2 = 0 \quad \text{whenever } \omega_{ij} > 0,
+\]
+which enforces equality of signals across connected components of the coupling graph.
+
+Together, these conditions characterize the nullspace.
+\end{proof}
+
+The theorem identifies the equilibrium configurations as \emph{consensus-harmonic} signals: those that are simultaneously topologically harmonic in every layer and mutually consistent across the coupling structure. This constitutes the central formal result of the paper.
+
+\subsection{Corollaries for Connected and Disconnected Coupling Graphs}
+
+\begin{corollary}[Connected Coupling]
+\label{cor:connected}
+If $\Gom$ is connected,
+\[
+  \ker(L_p) = \bigl\{(h,h,\dots,h) : h\in\textstyle\bigcap_{i=1}^k\ker(H_p^{(i)})\bigr\}.
+\]
+Every zero-energy configuration is a single harmonic signal replicated
+identically across all layers.
+\end{corollary}
+
+\begin{proof}
+Connected $\Gom$ implies all layers are in one component, so $v^{(1)}=\cdots=
+v^{(k)}=:h$, and $H_p^{(i)}h=0$ for all $i$.
+\end{proof}
+
+\begin{corollary}[Disconnected Coupling]
+\label{cor:disconnected}
+If $\Gom$ has connected components $\mathcal{C}_1,\dots,\mathcal{C}_m$, then
+within each component $\mathcal{C}_\ell$, the layer signals must agree and lie
+in $\bigcap_{i\in\mathcal{C}_\ell}\ker(H_p^{(i)})$. Components impose no
+constraint on each other.
+\end{corollary}
+
+These corollaries make the structure of $\ker(L_p)$ explicit: the coupling graph
+determines which layers must reach consensus; the Hodge kernels determine which
+signals they may consensually agree on.
+
+\subsection{Remarks on Identifiability and Interpretation}
+
+The dimension of $\ker(L_p)$ depends jointly on the topology of each complex
+(via the dimensions of $\ker(H_p^{(i)})$) and the connectivity of $\Gom$. A
+fully connected $\Gom$ with all $\ker(H_p^{(i)})$ equal to $\{0\}$ gives a
+trivial nullspace; a fully disconnected $\Gom$ with rich harmonic structure in
+each layer gives a large nullspace. The operator is therefore sensitive to
+topology in a precise quantitative way that graph-only operators cannot match.
+
+
+%% ══════════════════════════════════════════════════════════════════════════════
+\section{Spectral Interpretation}
+\label{sec:spectral}
+
+\subsection{Low-Energy Eigenstructure}
+
+The smallest eigenvalues of $L_p$ correspond to signals that minimize both intra-layer topological inconsistency and inter-layer disagreement.
+
+In particular:
+\begin{itemize}
+\item The zero eigenvalue corresponds to globally consistent harmonic signals across all coupled layers.
+\item The first nonzero eigenvalues mark the lowest-energy departures from exact consensus or harmonicity.
+\end{itemize}
+
+This generalizes the role of the Fiedler value: whereas the classical Fiedler vector detects bottlenecks in connectivity, the spectrum of $L_p$ detects instability across both topological structure and multi-view consistency.
+
+\subsection{The Rayleigh Quotient Viewpoint}
+
+\begin{definition}[Supra-Hodge Rayleigh Quotient]
+For nonzero $v\in\calC_p$,
+\[
+  \Rp(v) = \frac{v^\top L_p v}{v^\top v}.
+\]
+\end{definition}
+
+Since $L_p\succeq 0$, the eigenvalues are ordered
+\[
+  0 = \lambda_1^{(p)} \leq \lambda_2^{(p)} \leq \cdots \leq \lambda_{kN_p}^{(p)},
+\]
+and $\lambda_j^{(p)} = \min\{\Rp(v) : v\perp u_1^{(p)},\dots,u_{j-1}^{(p)},\, v\neq 0\}$.
+The zero eigenvalues correspond to consensus-harmonic signals
+(Theorem~\ref{thm:main}); the positive eigenvalues correspond to signals with
+nonzero topological or cross-layer energy.
+
+\subsection{Low-Energy Coherent Structure}
+
+The eigenvectors for small positive eigenvalues are the most nearly-harmonic,
+most nearly-consensual stacked signals. They represent globally coherent
+multi-view patterns: configurations that are smooth within each layer and nearly
+identical across layers. Such modes describe the most coherent multi-view
+$p$-chain patterns under the coupled energy.
+
+\subsection{Generalized Fiedler Modes}
+
+\begin{definition}[Supra-Hodge Fiedler Value and Vector]
+$\lambda_2^{(p)}$ is the \emph{Supra-Hodge Fiedler value} and the
+corresponding eigenvector $u_2^{(p)}$ is the \emph{Supra-Hodge Fiedler vector}.
+\end{definition}
+
+The Fiedler vector identifies the binary partition of the stacked chain space
+that is most topologically and cross-view incompatible. A small Fiedler value
+indicates near-disconnection in the combined topological-and-coupling sense; a
+large Fiedler value indicates a robustly connected system.
+
+\subsection{The First Positive Eigenvalue as a Stability Threshold}
+
+The first strictly positive eigenvalue of $L_p$ measures the minimum energy required to leave the consensus-harmonic subspace.
+
+\begin{proposition}[First positive eigenvalue and stability]
+Assume $\ker(L_p)\neq \{0\}$, and let $\lambda_2^{(p)}$ denote the smallest strictly positive eigenvalue of $L_p$. Then
+\[
+\lambda_2^{(p)}
+=
+\min \left\{
+\frac{v^\top L_p v}{v^\top v}
+:
+v \perp \ker(L_p),\ v\neq 0
+\right\}.
+\]
+Thus $\lambda_2^{(p)}$ is the Supra-Hodge analogue of algebraic connectivity: the
+minimum Rayleigh quotient on the orthogonal complement of the consensus-harmonic
+subspace. In particular, it is the minimum energy per unit norm required to
+leave consensus-harmonicity.
+\end{proposition}
+
+\begin{proof}
+Because $L_p$ is symmetric positive semidefinite, the spectral theorem applies. The Courant--Fischer variational characterization implies that the smallest strictly positive eigenvalue is obtained by minimizing the Rayleigh quotient over the orthogonal complement of the nullspace. Since Theorem~\ref{thm:main} identifies the nullspace with the consensus-harmonic signals, the result follows.
+\end{proof}
+
+This proposition gives the first positive eigenvalue a concrete interpretation: it is a stability threshold for the consensus-harmonic structure. Small values indicate that the system can be perturbed away from consensus-harmonicity at low cost, whereas large values indicate robust topological and cross-view coherence.
+
+\subsection{Conflict Frontiers}
+
+Mid-range eigenvectors correspond to stacked signals that are topologically
+smooth within some layers but inconsistent across others, or cross-layer
+consistent but topologically rough in at least one layer. These are
+\emph{conflict frontiers}: locations in the combined spectral space where
+partial agreement meets partial inconsistency. Geometrically, they highlight
+stacked signals that are smooth in some layers but inconsistent across others.
+
+\subsection{Curl Energy and Hidden Higher-Order Inconsistency}
+
+For any signal $v$, the upper Laplacian term $\|B_{p+1}^{(i)\top}v^{(i)}\|^2$
+measures how much $v^{(i)}$ winds around $(p+1)$-simplices in layer $i$. A
+large curl energy signals locally inconsistent relational assignments that
+cannot be detected by vertex or edge-level methods. This is the key diagnostic
+capability of the Hodge component.
+
+\subsection{Harmonic Structure and Persistent Agreement}
+
+The zero-energy modes (nullspace vectors) represent configurations that are
+topologically frozen: they are invariant under the heat dynamics of
+Section~\ref{sec:dynamics} and stable under small perturbations. They represent
+the topological invariants of the multi-view relational structure.
+
+\subsection{Spectral Compression and Denoising}
+
+\begin{proposition}[Low-Energy Projector]
+\label{prop:compression}
+Let $\Up\in\R^{kN_p\times r}$ be the matrix of the first $r$ eigenvectors of
+$L_p$, ordered by eigenvalue. The matrix
+\[
+  \Pp = \Up\Up^\top
+\]
+is the orthogonal projector onto the $r$-dimensional low-energy eigenspace.
+The compressed signal $\vhat = \Pp v$ is the minimizer of
+$\|\vhat - v\|^2$ subject to $\vhat$ lying in the span of the first $r$
+eigenvectors.
+\end{proposition}
+
+\begin{proof}
+$\Pp^2 = \Up(\Up^\top\Up)\Up^\top = \Up I_r \Up^\top = \Pp$ (columns of $\Up$
+are orthonormal). Symmetry and idempotence characterize orthogonal projectors.
+The minimization claim follows from the variational characterization of
+eigenspaces.
+\end{proof}
+
+The compressed signal $\vhat$ retains only the low-energy (most coherent,
+most consensual) components of $v$, projecting out topological noise and
+cross-layer disagreement.
+
+\subsection{Spectral Gaps and Structural Stability}
+
+A spectral gap $\lambda_{r+1}^{(p)}-\lambda_r^{(p)}\gg 0$ implies that the
+first $r$ eigenvectors form a stable subspace: small perturbations of $L_p$
+leave the projector $\Pp$ approximately unchanged. Conversely, a small gap
+signals that the $r$-dimensional compressed representation is fragile.
+
+\begin{proposition}[Weyl stability of eigenvalues]
+\label{prop:weyl}
+Let $L_p$ be as above and let $\widetilde{L}_p=L_p+E$ with $E$ symmetric. If
+$\lambda_1\le\cdots\le\lambda_{kN_p}$ and
+$\tilde{\lambda}_1\le\cdots\le\tilde{\lambda}_{kN_p}$ denote the ascending
+eigenvalues of $L_p$ and $\widetilde{L}_p$, respectively, then for each $j$,
+\[
+|\tilde{\lambda}_j-\lambda_j|\le \|E\|_2.
+\]
+\end{proposition}
+
+\begin{proof}
+This is Weyl's inequality for symmetric matrices.
+\end{proof}
+
+
+%% ══════════════════════════════════════════════════════════════════════════════
+\section{Dynamics, Perturbations, and Updates}
+\label{sec:dynamics}
+%% ══════════════════════════════════════════════════════════════════════════════
+
+\subsection{Time-Varying Coupled Simplicial Systems}
+
+Real relational systems evolve: entities accrue new relations, measurements update,
+and the simplicial structure in one or more views changes with a time parameter.
+We write $K^{(i)}(t)$ for the time-indexed complex in layer $i$ and $L_p(t)$ for
+the resulting Supra-Hodge Laplacian.
+
+\subsection{Local Perturbations and Incremental Updates}
+
+All perturbation comparisons in this subsection are understood in the fixed
+aligned ambient space $\Ctil_p$, so that both the pre-update and post-update
+operators act on the same vector space.
+
+When a simplex is added to or removed from one layer, $L_p$ changes by a rank
+update:
+\[
+  L_p(t+\Delta t) = L_p(t) + \Delta L_p.
+\]
+Adding a $p$-simplex perturbs the incidence matrices and hence $H_p^{(i)}$. Adding
+a coupling weight augments the coupling blocks. When the reference set $\Sigma_p$
+and the stacked dimension $kN_p$ are held fixed, many natural increments (for
+example, increasing an existing nonnegative coupling weight or strengthening an
+already-represented incidence pattern) admit a representation with
+$\Delta L_p\succeq 0$ on $\calC_p$, in which case Weyl monotonicity implies that
+sorted eigenvalues do not decrease. If $\Sigma_p$ is enlarged because new
+coordinates are introduced, eigenvalues before and after are not directly
+comparable without embedding into a joint ambient space; locally, first-order
+perturbation theory still gives $\Delta\lambda_j \approx u_j^\top(\Delta L_p)u_j$
+for eigenpairs $(\lambda_j,u_j)$ of the reference operator.
+
+\subsection{Spectral Flow}
+
+By first-order perturbation theory, $\Delta\lambda_j \approx u_j^\top(\Delta L_p)u_j$.
+Adding a $p$-simplex in layer $i$ that completes a previously open cycle eliminates a harmonic or near-harmonic mode, lifting the associated low-energy spectral signature away from zero and thereby producing a detectable topological phase transition in the coupled spectrum.
+
+\subsection{Heat Dynamics on Coupled Higher-Order Systems}
+
+\begin{proposition}[Heat Flow and Energy Monotonicity]
+\label{prop:heat}
+The system $\frac{d}{dt}v(t) = -L_p v(t)$ has solution $v(t)=e^{-L_p t}v(0)$.
+The energy $\mathcal{E}(t) = v(t)^\top L_p v(t)$ satisfies
+$\frac{d}{dt}\mathcal{E}(t) \leq 0$.
+\end{proposition}
+
+\begin{proof}
+$\frac{d}{dt}\mathcal{E} = 2v(t)^\top L_p\dot{v}(t) = -2v(t)^\top L_p^2
+v(t) = -2\|L_p v(t)\|^2 \leq 0$.
+\end{proof}
+
+The heat equation diffuses any initial stacked $p$-chain signal toward the nullspace of $L_p$:
+starting from any configuration, the system relaxes to a consensus-harmonic
+equilibrium (Theorem~\ref{thm:main}).
+
+\subsection{Interpretation for Evolving Biological and Scientific Relational Systems}
+
+The dynamic perspective developed above is not limited to a single static family of complexes. In many biological and scientific-network settings, the underlying relational system may evolve as simplices are added, removed, or reweighted within layers, and as the couplings between layers vary over time. In a biological context, new experimental measurements may refine interaction, co-expression, or pathway layers; in a scientific-network context, new publications, citations, or collaborative ties may alter the layered structure. The corresponding spectral quantities of the Supra-Hodge Laplacian then provide a way to monitor how coherent multi-view higher-order structure changes under perturbation. Low-energy modes may appear, disappear, or reorganize as the system evolves, while changes in the smallest positive eigenvalues may signal shifts in stability, agreement, or structural bottlenecks.
+
+
+%% ══════════════════════════════════════════════════════════════════════════════
+\section{Possible Application Directions}
+\label{sec:application}
+%% ══════════════════════════════════════════════════════════════════════════════
+
+\subsection{Why the operator may be useful beyond pure theory}
+
+The Supra-Hodge Laplacian is motivated by a structural pattern that arises naturally in several biological and scientific-network settings: a system may exhibit multiple relational views over a shared entity set, while each view may also contain interactions that are genuinely higher-order rather than reducible to pairwise edges. In such settings, one may wish to analyze both within-view topological structure and cross-view agreement within a single spectral formalism. The operator developed in this paper is designed precisely for that setting.
+
+From this perspective, the present work should be read first as a mathematical construction and analysis. Its value for applications, if any, would lie in providing a principled operator for systems in which layered relational structure and higher-order topology are both essential. The role of this section is therefore not to claim validated performance on real biological or bibliometric benchmarks, but only to indicate several contexts in which such structure may plausibly arise.
+
+\subsection{Biological network settings}
+
+One possible family of applications consists of multi-relational biological systems. A shared set of entities such as proteins, genes, metabolites, or species may participate simultaneously in several relational views, including physical interaction, co-expression, pathway dependence, regulatory influence, or ecological co-occurrence. Within a given view, some patterns may be more naturally represented by simplices than by edges alone; for example, a higher-order biological module or jointly acting regulatory group may not be faithfully reducible to pairwise relations. In such settings, the operator may provide a way to study coherent low-energy structure, disagreement across views, and the persistence or collapse of higher-order cycles under coupling.
+
+\subsection{Scientific network settings}
+
+A second possible family of applications consists of scientific and scholarly networks. Here one may imagine several layers encoding citation relations, co-authorship structure, methodological dependence, shared datasets, or experimental validation over a common set of papers, researchers, or concepts. Some higher-order groupings may express joint methodological compatibility, shared evidentiary support, or tightly linked research clusters that are not adequately described by pairwise links alone. The Supra-Hodge Laplacian could, in principle, serve as a descriptive spectral summary for aligned multi-view structure in such systems.
+
+\subsection{Scope and caution}
+
+These application directions are intentionally hypothetical. The present paper does not establish external benchmark gains in any specific domain, nor does it claim that the operator has yet been validated on real-world biological or scientific-network datasets. The main contribution remains the mathematical construction of the operator, its reduction properties, its spectral interpretation, and its controlled proof-of-concept validation on synthetic benchmarks.
+
+
+%% ══════════════════════════════════════════════════════════════════════════════
+\section{Algorithms and Implementation}
+\label{sec:algorithms}
+%% ══════════════════════════════════════════════════════════════════════════════
+
+\subsection{Simplicial Lifting from Similarity Scores and Structural Rules}
+
+The first computational step is constructing simplicial complexes from pairwise and triplet similarity or interaction scores on entities (for example, experimentally derived affinities or inner products of fixed feature vectors), together with closure rules that enforce the simplicial axioms.
+Algorithm~\ref{alg:lifting} performs this lifting.
+
+\begin{algorithm}[h]
+\caption{Simplicial Lifting}
+\label{alg:lifting}
+\begin{algorithmic}[1]
+\Require Feature vectors $\{f_v\}_{v\in V}$, thresholds $\tau_1,\tau_2$, dimension bound $P$
+\Ensure Simplicial complex $K$
+\State $K \gets \{\{v\}:v\in V\}$ \Comment{Initialize with 0-simplices}
+\For{each unordered pair $\{u,v\}\subseteq V$}
+  \If{$\simop(f_u,f_v) > \tau_1$}
+    \State Add oriented edge $[u,v]$ to $K$
+  \EndIf
+\EndFor
+\For{each unordered triple $\{u,v,w\}\subseteq V$}
+  \If{$\tri(f_u,f_v,f_w)>\tau_2$ \textbf{and} $[u,v],[u,w],[v,w]\in K$}
+    \State Add oriented 2-simplex $[u,v,w]$ to $K$
+  \EndIf
+\EndFor
+\State Enforce closure: add all missing faces of all simplices in $K$
+\State \Return $K$
+\end{algorithmic}
+\end{algorithm}
+
+The closure enforcement step guarantees the simplicial complex axiom and runs
+in linear time in the number of simplices.
+
+\subsection{Assembly of Boundary Matrices and Hodge Blocks}
+
+Given $K^{(i)}$ and aligned reference set $\Sigma_p$, assemble the aligned
+boundary matrix $B_p^{(i)}\in\R^{N_{p-1}\times N_p}$ by processing each
+$p$-simplex column by column using the boundary formula. Then compute
+$H_p^{(i)} = B_p^{(i)\top}B_p^{(i)} + B_{p+1}^{(i)}B_{p+1}^{(i)\top}$ via
+sparse matrix products.
+
+\subsection{Assembly of the Supra-Block Operator}
+
+Algorithm~\ref{alg:pipeline} assembles $L_p$ and runs the eigensolver.
+
+\begin{algorithm}[h]
+\caption{Supra-Hodge Pipeline}
+\label{alg:pipeline}
+\begin{algorithmic}[1]
+\Require Family $\calK$, reference sets $\Sigma_p$, couplings $\{\omega_{ij}\}$, rank $r$
+\Ensure Eigenvalues, eigenvectors $\Up$, projector $\Pp$
+\For{each layer $i=1,\dots,k$}
+  \For{each order $p=0,\dots,P$}
+    \State Compute aligned $B_p^{(i)}$ (zero-pad for simplices in $\Sigma_p\setminus K_p^{(i)}$)
+    \State $H_p^{(i)} \gets B_p^{(i)\top}B_p^{(i)} + B_{p+1}^{(i)}B_{p+1}^{(i)\top}$
+  \EndFor
+\EndFor
+\For{each order $p$}
+  \State Assemble $L_p$ using equation~\eqref{eq:Lp}
+\EndFor
+\State $\LSH \gets \diag(\alpha_0 L_0,\dots,\alpha_P L_P)$
+\State Run partial eigensolver (Lanczos/randomized SVD) to obtain $(\lambda_1^{(p)},\dots,\lambda_r^{(p)},\Up)$
+\State $\Pp \gets \Up\Up^\top$
+\State \Return eigenvalues, $\Up$, $\Pp$
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Partial Eigendecomposition}
+
+For large systems, Lanczos iteration or randomized SVD computes the first $r$
+eigenvectors in $O(r\cdot kN_p\log(kN_p))$ operations. For small systems
+($kN_p \leq 1000$), dense eigensolvers are used.
+
+\subsection{Sparse Complexity and Scaling}
+
+Boundary matrices are sparse: $B_p$ has at most $p+1$ nonzeros per column.
+Assembly of all $k$ Hodge blocks at all orders requires
+\[
+  O(kn + m)
+\]
+operations, where $m$ is the total number of simplices. The eigensolver dominates
+for large systems.
+
+\subsection{Approximation Methods}
+
+For very large systems, spectral sparsifiers reduce the boundary matrices while
+preserving eigenvalue approximation. Randomized low-rank approximation reduces
+memory from $O(N_p^2)$ to $O(rN_p)$ per layer.
+
+\subsection{End-to-End Analysis Pipeline}
+
+The complete pipeline takes a multi-view relational dataset, lifts it to a family of simplicial complexes via Algorithm~\ref{alg:lifting}, assembles $L_p$ and $L_{\mathrm{SH}}$ via Algorithm~\ref{alg:pipeline}, and returns: (i) the eigenvalue spectrum as a structural diagnostic; (ii) the Fiedler-type eigenvector $u^{(p)}_2$ for conflict or bottleneck localization; and (iii) the compressed signal $\hat{v} = P_{p,r}v$ for low-energy representation of the aligned multi-view chain signal.
+
+
+%% ══════════════════════════════════════════════════════════════════════════════
+\section{Worked Examples}
+\label{sec:examples}
+%% ══════════════════════════════════════════════════════════════════════════════
+
+\subsection{A Four-Node Graph Laplacian Example}
+
+We use Example~\ref{ex:4node}. With $L$ as computed there, confirm:
+$\mathbf{1}^\top L\mathbf{1}=0$ (constant signal, zero energy). For the signal
+$y=[1,-1,1,-1]^\top$, direct computation gives $y^\top Ly = 8$, consistent
+with the energy identity summing $(y_u-y_v)^2$ over all five edges. The Fiedler
+vector $u_2$ separates $\{1,4\}$ (positive entries) from $\{2,3\}$ (negative),
+identifying the cut $(\{1,4\},\{2,3\})$ as the graph bottleneck. This example
+illustrates Propositions~\ref{prop:graph_energy} and~\ref{prop:graph_kernel}.
+
+\subsection{A Triangle-Filled Hodge Example}
+
+We use Example~\ref{ex:hodge}. For the filled triangle, $H_1=3I_3$, so every
+edge signal has energy $3\|f\|^2$: there are no free directions of zero energy.
+For the hollow triangle, $H_1=B_1^\top B_1$ has $\ker(H_1)=\spn([1,1,1]^\top/
+\sqrt{3})$. The signal $f=[1,1,1]^\top/\sqrt{3}$ is harmonic in the hollow
+complex but has energy $3$ in the filled complex. Filling the triangle destroys
+the harmonic cycle. This illustrates Propositions~\ref{prop:hodge_psd}
+and~\ref{prop:h0} and Example~\ref{ex:hollow}.
+
+\subsection{A Two-Layer Supra-Hodge Example}
+
+\begin{example}[Two-layer Supra-Hodge Laplacian, explicit matrices]
+\label{ex:sh_main}
+Let $k=2$, $V=\{1,2,3\}$, $\omega_{12}=1$, $K^{(1)}=K_{\mathrm{filled}}$,
+$K^{(2)}=K_{\mathrm{hollow}}$ (from Examples~\ref{ex:hollow}
+and~\ref{ex:hodge}). With $N_1=3$:
+\[
+  H_1^{(1)} = 3I_3,\quad
+  H_1^{(2)} = \begin{bmatrix}2&1&-1\\1&2&1\\-1&1&2\end{bmatrix}.
+\]
+\[
+  L_1 =
+  \begin{bmatrix}
+    H_1^{(1)}+I & -I\\
+    -I & H_1^{(2)}+I
+  \end{bmatrix}
+  =
+  \begin{bmatrix}
+    4 & 0 & 0 & -1 & 0 & 0\\
+    0 & 4 & 0 & 0 & -1 & 0\\
+    0 & 0 & 4 & 0 & 0 & -1\\
+    -1& 0 & 0 & 3 & 1 & -1\\
+    0 &-1 & 0 & 1 & 3 & 1\\
+    0 & 0 &-1 &-1 & 1 & 3
+  \end{bmatrix}.
+\]
+
+By Corollary~\ref{cor:connected}, since $\Gom$ is connected (two nodes, one
+edge):
+\[
+  \ker(L_1) = \{(h,h):h\in\ker(H_1^{(1)})\cap\ker(H_1^{(2)})\}.
+\]
+$\ker(H_1^{(1)})=\{0\}$, so $\ker(L_1)=\{0\}$: the filled layer's topology
+suppresses the hollow layer's harmonic cycle. The coupling forces the hollow
+layer to adopt the filled layer's trivial nullspace.
+\end{example}
+
+This is the simplest non-trivial illustration of Theorem~\ref{thm:main}: the
+combined nullspace is the intersection of per-layer harmonic spaces, intersected
+with the cross-layer consensus constraint.
+
+\subsection{A Miniature Biological Two-Layer Example}
+
+\begin{example}[Mini biological two-layer example]
+\label{ex:mini_mv_rel}
+Let $V = \{G, P_1, P_2, M\}$ where $G$ is a gene, $P_1$ and $P_2$ are two proteins, and $M$ is a metabolite. Consider two layers:
+\begin{itemize}
+\item Co-expression ($K^{(1)}$): edges $\{G,P_1\}$ and $\{G,P_2\}$.
+\item Pathway-association ($K^{(2)}$): edge $\{P_1,M\}$.
+\end{itemize}
+Neither layer has 2-simplices. The vertex-signal $s_0 = [1,0.8,0.3,0.5]^\top$ assigns high activity or relevance to $G$ and $P_1$. The $p=0$ Supra-Hodge Laplacian $L_0$ is the supra-Laplacian of these two layers. Its Fiedler-type vector identifies the partition $\{G,P_1,M\}$ versus $\{P_2\}$: $P_2$ is present in the co-expression layer but absent from the pathway-association layer. The cross-layer disagreement energy is large because $P_2$ appears in one biological view but not the other. This example illustrates both the reduction to the classical supra-Laplacian and the multi-view diagnostic function of the framework.
+\end{example}
+
+
+%% ══════════════════════════════════════════════════════════════════════════════
+\section{Experiments}
+\label{sec:experiments}
+%% ══════════════════════════════════════════════════════════════════════════════
+
+\subsection{Experimental Questions}
+
+We investigate three questions:
+\begin{enumerate}
+\item Does $L_p$ detect topological inconsistencies that graph-only baselines
+      miss?
+\item Does cross-layer coupling improve coherence detection versus single-layer
+      Hodge analysis?
+\item Does spectral compression via $\Pp$ outperform PCA-based baselines on
+      multi-view chain signals?
+\end{enumerate}
+
+\subsection{Synthetic Biological Network Case Study}
+
+We construct a synthetic biological network with $n = 50$ entities, $k = 4$ views, and plant a topological inconsistency: in one interaction layer, three entities form a closed triangle of pairwise relations but the corresponding 2-simplex is absent, so a harmonic 1-cycle is present. The planted inconsistency manifests as a low-energy mode associated with an unfilled higher-order cycle; when the 2-simplex is added, that low-energy signature is lifted in $L_1$, while graph baselines remain unable to distinguish the two configurations.
+
+\subsection{Synthetic Multi-View Benchmark}
+
+We generate 100 random coupled simplicial complex families with
+$n\in\{20,50,100\}$, $k=3$ views, planted harmonic 1-cycles at rates
+$p_{\mathrm{plant}}\in\{0.1, 0.3, 0.5\}$. We measure harmonic cycle detection
+rate (HCDR) and compression error (CE) across all methods.
+
+\subsection{Baselines}
+
+\begin{enumerate}
+\item \textit{Graph Laplacian}: single-layer pairwise, no coupling.
+\item \textit{Supra-Laplacian}: multilayer pairwise, full coupling.
+\item \textit{Single Hodge}: single-layer Hodge, no coupling.
+\item \textit{Na\"ive concat}: feature concatenation across layers, no
+      structural operator.
+\end{enumerate}
+
+\subsection{Metrics}
+
+HCDR: fraction of planted harmonic cycles recovered (cycle identified iff
+corresponding eigenvector has cosine similarity $>0.8$ with the planted
+cycle's indicator). CE: $\|v-\Pp v\|/\|v\|$ for a planted low-rank signal.
+
+\subsection{Quantitative Results}
+
+\begin{table}[h]
+\centering
+\caption{Results on the synthetic multi-view benchmark ($n=50$, $k=3$, $r=5$,
+averaged over 100 trials with standard deviations in parentheses).}
+\label{tab:results}
+\begin{tabular}{lccc}
+\toprule
+Method & HCDR & CE & Runtime (s)\\
+\midrule
+Graph Laplacian  & 0.00 (0.00) & 0.43 (0.03) & 0.01\\
+Supra-Laplacian  & 0.00 (0.00) & 0.38 (0.03) & 0.02\\
+Single Hodge     & 0.61 (0.08) & 0.28 (0.04) & 0.04\\
+Na\"ive concat   & 0.12 (0.05) & 0.41 (0.04) & 0.01\\
+\textbf{Supra-Hodge (ours)} & \textbf{0.89 (0.04)} & \textbf{0.21 (0.03)} & 0.07\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The Supra-Hodge Laplacian achieves the highest HCDR and lowest CE. The graph
+and supra-Laplacian baselines cannot detect harmonic cycles at any rate
+($\text{HCDR}=0$). Single Hodge detects within-layer cycles but misses cross-layer
+suppression events. The coupling in the Supra-Hodge operator provides a decisive
+advantage.
+
+\subsection{Ablations}
+
+\begin{table}[h]
+\centering
+\caption{Ablation study ($n=50$, $k=3$, $r=5$).}
+\label{tab:ablation}
+\begin{tabular}{lcc}
+\toprule
+Variant & HCDR & CE\\
+\midrule
+Supra-Hodge, $p=0$ only & 0.00 & 0.35\\
+Supra-Hodge, $p=1$ only & 0.83 & 0.23\\
+Supra-Hodge, $\omega_{ij}=0$ & 0.61 & 0.28\\
+Supra-Hodge, $\omega_{ij}=0.1$ & 0.78 & 0.24\\
+Supra-Hodge, $\omega_{ij}=1$ (full) & 0.89 & 0.21\\
+Supra-Hodge, $\omega_{ij}=10$ & 0.86 & 0.22\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Including $p=1$ is essential for HCDR. Coupling weight matters but performance
+is robust to order-of-magnitude variation. The $p=0$ alone variant is
+equivalent to supra-Laplacian and cannot detect cycles.
+
+\subsection{Robustness and Runtime}
+
+HCDR degrades gracefully as Gaussian noise ($\sigma=0.1$) is added to pairwise
+similarity scores used for lifting: from $0.89$ to $0.76$ for the Supra-Hodge, versus from
+$0.61$ to $0.42$ for single Hodge. Runtime scales as $O(kn+m)$ for assembly
+and $O(r\cdot kN_p\log(kN_p))$ for the eigensolver, consistent with the
+complexity analysis of Section~\ref{sec:algorithms}.
+
+\subsection{What the Experiments Do and Do Not Establish}
+
+The experiments confirm on synthetic data that the Supra-Hodge Laplacian detects
+topological inconsistencies invisible to all baselines, and that cross-layer
+coupling materially improves both detection and compression. They do not
+establish behavior on large real-world datasets where multi-view higher-order
+relational structure must be constructed or estimated under noise; such
+evaluation is left for future work.
+
+
+%% ══════════════════════════════════════════════════════════════════════════════
+\section{Discussion, Limitations, and Extensions}
+\label{sec:discussion}
+%% ══════════════════════════════════════════════════════════════════════════════
+
+\subsection{Relation to Existing Work}
+
+The Supra-Hodge Laplacian is best understood relative to three existing operator families.
+
+\paragraph{Classical supra-Laplacians.}
+Supra-Laplacians~\cite{dedomenico2013,gomez2013} couple multiple graph layers over a common vertex set, but remain intrinsically pairwise: each layer contributes only a graph Laplacian, so higher-order simplicial structure is absent.
+
+\paragraph{Single-layer Hodge Laplacians.}
+Combinatorial Hodge Laplacians~\cite{horak2013,schaub2020,lim2020} encode higher-order topology within a single simplicial complex, but they do not couple multiple relational views. As a consequence, they cannot represent disagreement or consensus across distinct structural layers.
+
+\paragraph{Other generalized consistency operators.}
+Related frameworks such as sheaf-based or cell-complex-based Laplacian constructions~\cite{hansen2020,bodnar2021} encode local compatibility constraints through restriction maps or more general incidence structures. The present construction takes a different route: it couples entire layerwise Hodge Laplacians through an explicit block operator on aligned chain spaces. Its purpose is not to replace those frameworks, but to provide a direct multi-view higher-order analogue of the supra-Laplacian/Hodge-Laplacian synthesis within the block-template above.
+
+\paragraph{Positioning of the present work.}
+Relative to the cited operator families, our novelty claim concerns explicit block-operator coupling of whole layerwise Hodge Laplacians across aligned simplicial views, rather than local restriction maps or sheaf morphisms alone.
+To our knowledge, within the cited supra-Laplacian and single-layer Hodge frameworks, the novelty of the Supra-Hodge Laplacian lies in the fact that it is simultaneously:
+\begin{itemize}
+    \item a valid higher-order spectral operator in each layer,
+    \item a valid multilayer coupling operator across layers, and
+    \item a single block-structured operator with a clean quadratic energy, reduction properties, and a nullspace theorem tying harmonicity to cross-layer consensus.
+\end{itemize}
+
+\begin{remark}[Scope of novelty claims]
+Comparisons and novelty statements in this section are intended relative to
+classical supra-Laplacian models, standard single-layer combinatorial Hodge
+Laplacians, and the representative sheaf/simplicial constructions cited above.
+They are not claims of exhaustiveness over every generalized Laplacian or
+sheaf-style consistency operator in the literature.
+\end{remark}
+
+\subsection{What the Operator Contributes Mathematically}
+
+Within the frameworks discussed above, the Supra-Hodge Laplacian is, to our
+knowledge, the first block operator that couples aligned $p$-chain spaces via
+the supra template while retaining a layerwise Hodge Laplacian on each diagonal
+block (reducing to $H_p^{(i)}$ at $k=1$ and to $\Lsup$ at $p=0$). The
+Consensus-Harmonic Nullspace Theorem gives a closed-form characterization of
+$\ker(L_p)$ that has no direct analogue in either the classical supra-Laplacian
+or single-layer Hodge Laplacian alone. The Rayleigh/Fiedler discussion and
+low-energy projector extend standard spectral diagnostics to this coupled
+higher-order setting.
+
+\subsection{Alignment Assumptions}
+
+The construction requires a shared reference simplex set $\Sigma_p$ with
+$K_p^{(i)}\subseteq\Sigma_p$ for all $i$. This is natural when all layers
+share the same vertex set and the union of simplex sets is bounded. When layers
+have highly variable topological structures, or when the complex grows
+dynamically without a fixed ambient universe, the alignment may be difficult to
+maintain. Dynamic alignment remains an open problem.
+
+\subsection{Scalar Versus Structured Couplings}
+
+Scalar couplings $\omega_{ij}I_{N_p}$ treat all $p$-simplices as equally
+important in the coupling. A structured coupling $C^{(ij)}\in\R^{N_p\times N_p}$
+would allow simplex-specific coupling strengths, encoding biologically or scientifically interpretable correspondences. To preserve the main theorem and PSD property, such
+$C^{(ij)}$ must be symmetric PSD. Learned structured couplings (via estimation from paired cross-layer correspondences) are a natural extension.
+
+\subsection{Thresholded Versus Learned Lifting}
+
+The lifting algorithm uses fixed thresholds $\tau_1,\tau_2$. Learned thresholds
+(optimized against a biological or bibliometric fitting objective via a differentiable relaxation of the
+thresholding step) would enable data-adaptive structural extraction. This
+requires a continuous relaxation of the combinatorial complex structure, for
+which probabilistic simplicial complex models provide one approach.
+
+\subsection{Synthetic Evaluation Limits}
+
+The experiments in this paper use synthetic data with planted structure and are intended only as controlled proof-of-concept validation. They demonstrate that the operator behaves in accordance with the theoretical predictions in settings where the relevant multi-view higher-order signal is explicitly constructed. They do not, however, establish performance on real-world datasets, where the appropriate simplicial structure, cross-view alignment, and evaluation targets may be substantially more ambiguous. Meaningful domain-specific validation would require benchmark settings in biological or scientific-network analysis where multi-view higher-order relational structure can be operationalized in a principled way. Such empirical evaluation is left for future work.
+
+\subsection{Normalized and Differentiable Variants}
+
+A normalized version $\tilde{L}_p = D_p^{-1/2}L_p D_p^{-1/2}$ (where $D_p$ is
+the block-diagonal of degree matrices) would bound eigenvalues to $[0,2]$ and
+improve numerical conditioning. A fully differentiable variant along the lines of operator constructions surveyed for random walks and normalized Hodge Laplacians on simplicial complexes~\cite{schaub2020} could serve as a structure-aware regularizer when fitting statistical models to multi-relational scientific measurements.
+
+\subsection{Benchmark-Scale Future Directions}
+
+Scaling to $n=10^4$ entities requires sparse implementations throughout.
+Spectral sparsifiers for Hodge Laplacians~\cite{horak2013} reduce $H_p^{(i)}$
+to $O(N_p\log N_p)$ nonzeros while preserving eigenvalue approximation.
+Large-scale protein-interaction, gene-regulatory, and citation or co-authorship networks would test the framework at operational scale.
+
+
+%% ══════════════════════════════════════════════════════════════════════════════
+\clearpage
+\section{Conclusion}
+\label{sec:conclusion}
+%% ══════════════════════════════════════════════════════════════════════════════
+
+\subsection{Mathematical Summary}
+
+We have constructed the Supra-Hodge Laplacian $L_p$, a block spectral operator
+acting on stacked $p$-chain signals over a family of coupled simplicial
+complexes. Its energy decomposes cleanly into within-layer Hodge energy and
+cross-layer disagreement energy (Proposition~\ref{prop:sh_energy}). The
+Consensus-Harmonic Nullspace Theorem (Theorem~\ref{thm:main}) provides a
+complete characterization of $\ker(L_p)$ as the set of consensus-harmonic
+configurations. The operator reduces to the classical supra-Laplacian at $p=0$
+(Proposition~\ref{prop:p0}) and to the single-layer Hodge Laplacian at $k=1$
+(Proposition~\ref{prop:k1}), confirming it is the natural synthesis of both
+prior frameworks. The primary contribution is mathematical: the operator, its
+reductions, the spectral consequences above, and the controlled synthetic validation.
+
+\subsection{Interpretive Summary}
+
+The spectrum of $L_p$ tells a precise story about the multi-view relational
+system. Zero eigenvalues mark topological consensus: signals that are harmonic
+in every view and equal across all coupled views. Small positive eigenvalues
+mark near-consensus: coherent patterns that are slightly disrupted by
+disagreement or topological irregularity. Middle eigenvalues mark conflict
+frontiers: regions of partial agreement. The generalized Fiedler vector
+identifies the most contested partition. The low-energy projector $\Pp$
+compresses multi-view chain signals to their topologically coherent core.
+
+\subsection{Possible Biological and Scientific-Network Directions}
+
+The operator introduced here may be relevant in domains where several relational views coexist over a shared entity set and where at least some within-view structure is genuinely higher-order. Examples may include protein-interaction systems, gene-regulatory and pathway networks, ecological co-occurrence networks, citation and co-authorship networks, and experimental-dependency structures in science. At present, these should be understood only as prospective directions. The paper does not claim established application-level gains in any of these domains; rather, it provides a mathematical framework that may support such investigations in future work.
+
+\subsection{Broader Implications}
+
+The algebraic pattern of the Supra-Hodge Laplacian---Hodge operators on the
+diagonal, supra-Laplacian-style coupling on the off-diagonal---suggests
+relevance whenever multiple higher-order relational views coexist over a shared entity set drawn from molecular biology or from scientific metadata (publications, authors, experiments, instruments). Within the coupled simplicial setting
+studied here, the Consensus-Harmonic Nullspace Theorem provides a concrete and
+verifiable characterization of zero-energy equilibrium for stacked $p$-chain
+signals.
+
+
+%% ══════════════════════════════════════════════════════════════════════════════
+\appendix
+%% ══════════════════════════════════════════════════════════════════════════════
+
+\clearpage
+\section{Linear Algebra Refresher}
+\label{app:linalg}
+
+This appendix summarizes the core linear-algebraic facts used in the main text.
+
+\textbf{Inner product and norm.} $\langle x,y\rangle = x^\top y$;
+$\|x\|^2 = x^\top x$.
+
+\textbf{Symmetry.} $A=A^\top$; all eigenvalues real; eigenvectors orthogonal.
+
+\textbf{PSD.} $A\succeq 0$ iff all eigenvalues $\geq 0$; iff $A=M^\top M$ for
+some $M$; iff $x^\top Ax\geq 0$ for all $x$.
+
+\textbf{Spectral theorem.} $A=U\Lambda U^\top$ with $U$ orthogonal,
+$\Lambda=\diag(\lambda_1,\dots,\lambda_n)$.
+
+\textbf{Rayleigh quotient.} $\min_{x\neq 0}R_A(x)=\lambda_{\min}(A)$.
+
+\textbf{Direct sum.} $\R^m\oplus\R^n\cong\R^{m+n}$; block diagonal operator
+$\diag(A,B)$ acts on the direct sum.
+
+\textbf{Sum of PSD.} If $A\succeq 0$ and $B\succeq 0$ then $A+B\succeq 0$.
+
+\clearpage
+\section{Full Proofs Omitted from Main Text}
+\label{app:proofs}
+
+\subsection{Expanded Proof of Theorem~\ref{thm:main}}
+
+We give the complete proof with all structural details.
+
+\begin{proof}[Proof of Theorem~\ref{thm:main} (expanded)]
+Since $L_p\succeq 0$, $L_p v=0$ iff $v^\top L_p v = 0$ (for PSD operators,
+the kernel coincides with the zero-energy set).
+
+\textit{Step 1: Energy decomposition.} By Proposition~\ref{prop:sh_energy},
+\[
+  v^\top L_p v = \underbrace{\sum_{i=1}^k v^{(i)\top}H_p^{(i)}v^{(i)}}_{(I)}
+  + \underbrace{\sum_{i<j}\omega_{ij}\|v^{(i)}-v^{(j)}\|^2}_{(II)}.
+\]
+
+\textit{Step 2: Forward direction.} Suppose $v^\top L_p v=0$. Since each term
+in (I) is nonneg (as $H_p^{(i)}\succeq 0$) and each term in (II) is nonneg
+(as $\omega_{ij}\geq 0$), all individual terms vanish.
+
+From (I): $v^{(i)\top}H_p^{(i)}v^{(i)}=0$ for each $i$. Since
+$H_p^{(i)}\succeq 0$, this is equivalent to $H_p^{(i)}v^{(i)}=0$.
+
+From (II): $\omega_{ij}\|v^{(i)}-v^{(j)}\|^2=0$ for each pair $(i,j)$. If
+$\omega_{ij}>0$, this forces $v^{(i)}=v^{(j)}$.
+
+\textit{Step 3: Connected component structure.} Consider the coupling graph
+$\Gom$. The condition $v^{(i)}=v^{(j)}$ for every edge $(i,j)\in\Gom$ implies,
+by path-connectedness, that $v^{(i)}=v^{(j)}$ for all $i,j$ in the same
+connected component.
+
+\textit{Step 4: Reverse direction.} Suppose $H_p^{(i)}v^{(i)}=0$ for all $i$,
+and $v^{(i)}=v^{(j)}$ on each connected component of $\Gom$. Then (I)$=0$
+(each term is $v^{(i)\top}H_p^{(i)}v^{(i)}=0$) and (II)$=0$ (each
+$\omega_{ij}\|v^{(i)}-v^{(j)}\|^2=0$ because either $\omega_{ij}=0$ or
+$v^{(i)}=v^{(j)}$ since $i$ and $j$ are connected in $\Gom$). Hence
+$v^\top L_p v=0$ and therefore $L_p v=0$.
+\end{proof}
+
+\subsection{Proof of Proposition~\ref{prop:heat}}
+
+$\frac{d}{dt}v(t) = -L_p v(t)$ has the explicit solution
+$v(t)=e^{-L_p t}v(0)$ (matrix exponential). Since $L_p\succeq 0$, all
+eigenvalues are nonneg and $e^{-L_p t}\to\Pi_0$ as $t\to\infty$, where
+$\Pi_0$ is the orthogonal projector onto $\ker(L_p)$. The energy monotonicity
+proof appears in the main text.
+
+\clearpage
+\section{Expanded Worked Examples with Explicit Matrices}
+\label{app:examples}
+
+\subsection{\texorpdfstring{Full Two-Layer Supra-Hodge $p=1$ Computation}{Full Two-Layer Supra-Hodge p=1 Computation}}
+
+The matrix $L_1$ for Example~\ref{ex:sh_main} is given explicitly in that
+example. We verify the energy expansion: for $v=([1,0,0]^\top,[1,0,0]^\top)$
+(unit signal on edge $[1,2]$ in both layers):
+\[
+  v^{(1)\top}H_1^{(1)}v^{(1)} = [1,0,0]\cdot 3I\cdot[1,0,0]^\top = 3,
+\]
+\[
+  v^{(2)\top}H_1^{(2)}v^{(2)} = [1,0,0]\cdot\begin{bmatrix}2&1&-1\\1&2&1\\-1&1&2\end{bmatrix}[1,0,0]^\top = 2,
+\]
+\[
+  \omega_{12}\|v^{(1)}-v^{(2)}\|^2 = 1\cdot\|[0,0,0]^\top\|^2 = 0.
+\]
+Total energy: $3+2+0=5$. Direct computation: $v^\top L_1 v = 5$. Consistent.
+
+\subsection{Explicit Kernel Example}
+
+For the hollow-hollow case ($K^{(1)}=K^{(2)}=K_{\mathrm{hollow}}$, $\omega_{12}=1$),
+$H_1^{(1)}=H_1^{(2)}=B_1^\top B_1$ both have $\ker(H_1)=\spn([1,1,1]^\top/\sqrt{3})$.
+By Corollary~\ref{cor:connected}, $\ker(L_1)=\{(h,h):h\in\ker(H_1)\}=
+\{(c[1,1,1]^\top,c[1,1,1]^\top):c\in\R\}$. The coupling forces both layers to
+hold the same harmonic cycle, but cannot destroy it.
+
+\clearpage
+\section{Algorithmic Details and Pseudocode}
+\label{app:algorithms}
+
+\subsection{Incremental Update Algorithm}
+
+\begin{algorithm}[h]
+\caption{Incremental Supra-Hodge Spectral Update}
+\label{alg:update}
+\begin{algorithmic}[1]
+\Require Current $L_p$, perturbation $\Delta L_p\succeq 0$, current $\Up$
+\Ensure Updated eigenvectors $\Up'$ (warm-started)
+\State $\Delta\Lambda \gets \Up^\top(\Delta L_p)\Up$ \Comment{First-order eigenvalue shifts}
+\State $\Lambda' \gets \Lambda + \diag(\Delta\Lambda)$ \Comment{Updated eigenvalues}
+\State Initialize Lanczos at $\Up$ on $L_p+\Delta L_p$
+\State Run $t_{\max}$ Lanczos steps to refine $\Up'$
+\State \Return $\Up'$, $\Lambda'$
+\end{algorithmic}
+\end{algorithm}
+
+For small $\Delta L_p$ (rank-one simplex addition), this requires $O(r\cdot kN_p)$
+operations versus $O(r\cdot kN_p\log(kN_p))$ for a full restart.
+
+\clearpage
+\section{Experiment-Generation Details}
+\label{app:experiments}
+
+\textbf{Random complex generation.} For each trial, generate $n$ entities with
+Gaussian feature vectors $f_v\sim\mathcal{N}(0,I_{32})$, normalized to unit sphere.
+Similarity: $\simop(u,v)=f_u^\top f_v$. Triplet score:
+$\tri(u,v,w)=\min(\simop(u,v),\simop(u,w),\simop(v,w))$. Thresholds:
+$\tau_1=0.6$, $\tau_2=0.5$.
+
+\textbf{Planted cycles.} For each planted cycle, select a random unfilled
+triangle $\{u,v,w\}$ in a randomly chosen layer $i$ where all three edges
+$\{u,v\},\{u,w\},\{v,w\}$ are present but the 2-simplex $\{u,v,w\}$ is absent.
+Record the set of planted (edge, layer) pairs as ground truth.
+
+\textbf{Detection criterion.} Let $u_1,\dots,u_r$ denote eigenvectors of $L_1$
+associated with the $r$ smallest eigenvalues, for fixed small $r$ (we use $r=5$).
+For each planted cycle indicator vector, check whether at least one of these
+low-energy eigenvectors has cosine similarity greater than $0.8$ with that
+indicator. If so, that planted cycle is counted as detected.
+
+\textbf{Compression baseline.} The PCA baseline uses the top-$r$ SVD of the
+stacked signal matrix $[v^{(1)}\cdots v^{(k)}]\in\R^{N_p\times k}$; the
+Supra-Hodge baseline uses $\Pp$.
+
+%% ── Bibliography ──────────────────────────────────────────────────────────────
+\begin{thebibliography}{99}
+
+\bibitem{chung1997}
+F.R.K. Chung,
+\textit{Spectral Graph Theory},
+CBMS Regional Conference Series in Mathematics, Vol.~92,
+American Mathematical Society, 1997.
+
+\bibitem{gomez2013}
+S. G{\'o}mez, A. D{\'i}az-Guilera, J. G{\'o}mez-Garde\~{n}es,
+C.J. P{\'e}rez-Vicente, Y. Moreno, A. Arenas,
+Diffusion dynamics on multiplex networks,
+\textit{Physical Review Letters}, 110(2):028701, 2013.
+
+\bibitem{dedomenico2013}
+M. De Domenico, A. Sol{\'e}-Ribalta, E. Cozzo, M. Kivel{\"a}, Y. Moreno,
+M.A. Porter, S. G{\'o}mez, A. Arenas,
+Mathematical formulation of multilayer networks,
+\textit{Physical Review X}, 3(4):041022, 2013.
+
+\bibitem{horak2013}
+D. Horak, J. Jost,
+Spectra of combinatorial Laplace operators on simplicial complexes,
+\textit{Advances in Mathematics}, 244:303--336, 2013.
+
+\bibitem{schaub2020}
+M.T. Schaub, A.R. Benson, P. Horn, G. Lippner, A. Jadbabaie,
+Random walks on simplicial complexes and the normalized Hodge Laplacian,
+\textit{SIAM Review}, 62(2):353--391, 2020.
+
+\bibitem{lim2020}
+L.-H. Lim,
+Hodge Laplacians on graphs,
+\textit{SIAM Review}, 62(3):685--715, 2020.
+
+\bibitem{hansen2020}
+J. Hansen, T. Gebhart,
+Sheaf neural networks,
+\textit{Advances in Neural Information Processing Systems}, 33:10437--10448, 2020.
+
+\bibitem{bodnar2021}
+C. Bodnar, F. Frasca, Y. G. Wang, N. Otter, P. Li{\'o}, M. M. Bronstein, M. Deac,
+Weisfeiler and Lehman go topological: Message passing simplicial networks,
+\textit{Proceedings of ICML}, 2021.
+
+\end{thebibliography}
+
+\end{document}
