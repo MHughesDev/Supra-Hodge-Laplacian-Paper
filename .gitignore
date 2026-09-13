@@ -15,3 +15,6 @@ __pycache__/
 *.fls
 *.fdb_latexmk
 *.synctex.gz
+
+# Build output (regenerate with build.ps1)
+build/
