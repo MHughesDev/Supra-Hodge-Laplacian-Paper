@@ -1,2 +1,6 @@
 # Secrets — never commit
 .env
+
+# Python bytecode cache
+__pycache__/
+*.py[co]
