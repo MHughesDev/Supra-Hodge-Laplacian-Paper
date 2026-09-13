@@ -4,3 +4,14 @@
 # Python bytecode cache
 __pycache__/
 *.py[co]
+
+# LaTeX intermediate build files
+*.aux
+*.log
+*.out
+*.toc
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.synctex.gz
